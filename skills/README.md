@@ -1,21 +1,18 @@
 # Skills
 
-`skills/blocks` 存放可复用的原型积木（JSON）。ProtoLive 启动时读取 `manifest.json`，把每个 block 挂到左侧组件面板。
+两类 skill：
 
-## Block 字段
+| 目录 | 归属 | 内容 |
+|------|------|------|
+| `skills/engine/` | 引擎 | 如何用 `Component` / `D` / 导航写产品页 |
+| `skills/blocks/` | 产品 | 编辑器左侧可拖积木（JSON） |
 
-| 字段 | 说明 |
-|------|------|
-| `id` | 唯一标识，拖放时使用 |
-| `kind` | 渲染类型：`text` / `button` / `input` / `card` / `image` / `navbar` |
-| `label` | 面板显示名称 |
-| `icon` | 短标签 |
-| `defaults` | 默认宽高、`props`、`style` |
+## 产品积木（blocks）
 
-## 新增积木
+启动时读取 `blocks/manifest.json`。字段：`id` / `kind` / `label` / `icon` / `defaults`。
 
-1. 在 `skills/blocks/` 增加 `my-block.json`
-2. 把文件名写入 `manifest.json` 的 `blocks` 数组
-3. 刷新页面即可
+新增：加 JSON → 写入 manifest → 刷新。`fetch` 失败时产品回退到内置 fallback。
 
-若 `fetch` 失败（例如直接打开 `file://`），应用会回退到内置 fallback 积木，保证本地仍可演示。
+## 引擎约定
+
+见 [engine/README.md](./engine/README.md)。

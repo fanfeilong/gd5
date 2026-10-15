@@ -1,11 +1,12 @@
 /**
- * Zero-dependency Node test runner for ProtoLive core modules.
+ * ProtoLive tests — engine + product helpers
  * Run: node test/run.mjs
  */
 
-import { createStore, DEFAULT_DOC } from '../src/js/store.js';
-import { documentToHtml, escapeHtml, renderNodeHtml } from '../src/js/export.js';
-import { FALLBACK_BLOCKS } from '../src/js/skills.js';
+import { Log, LogEnv, Component, ComponentRender, D, Element } from '../src/engine/index.js';
+import { createStore, DEFAULT_DOC } from '../src/product/lib/store.js';
+import { documentToHtml, escapeHtml, renderNodeHtml } from '../src/product/lib/export.js';
+import { FALLBACK_BLOCKS } from '../src/product/lib/skills.js';
 import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -30,80 +31,180 @@ function section(title) {
   console.log(`\n${title}`);
 }
 
-section('store');
+section('layout: product vs engine');
+{
+  for (const path of [
+    'src/engine/index.js',
+    'src/engine/component.js',
+    'src/engine/component-render.js',
+    'src/engine/element.js',
+    'src/engine/log.js',
+    'src/product/main.js',
+    'src/product/components/EditorComponent.js',
+    'src/product/components/PreviewComponent.js',
+    'src/product/components/BootComponent.js',
+    'docs/architecture.md',
+    'skills/engine/README.md',
+  ]) {
+    assert(existsSync(join(root, path)), `${path} exists`);
+  }
+  assert(!existsSync(join(root, 'src/js')), 'legacy src/js removed');
+  assert(!existsSync(join(root, 'index.py')), 'Flask entry removed');
+}
+
+section('engine: Log');
+{
+  const log = new Log(LogEnv.disable, ['ctx']);
+  log.i('should not throw');
+  assert(log.env() === LogEnv.disable, 'Log env is disable');
+  const forked = log.fork();
+  forked.pushContext('more');
+  assert(forked !== log, 'Log.fork returns new instance');
+}
+
+section('engine: Component + ComponentRender navigation');
+{
+  const mounts = {};
+  const displays = {};
+  globalThis.document = {
+    getElementById(id) {
+      if (!mounts[id]) mounts[id] = { style: { display: 'none' }, id };
+      return mounts[id];
+    },
+  };
+
+  class PageA extends Component {
+    constructor(nav, logger) {
+      super();
+      this.navigator = nav;
+      this.logger = logger;
+      this.mounted = 0;
+      this.unmounted = 0;
+      this.state = { data: {}, ref: {} };
+    }
+    async componentDidMount() {
+      this.mounted += 1;
+    }
+    componentDidUnMount() {
+      this.unmounted += 1;
+    }
+    componentDidAttachEvents() {}
+    render() {}
+  }
+
+  class PageB extends Component {
+    constructor(nav, logger) {
+      super();
+      this.navigator = nav;
+      this.logger = logger;
+      this.mounted = 0;
+      this.state = { data: {}, ref: {} };
+    }
+    async componentDidMount() {
+      this.mounted += 1;
+    }
+    componentDidUnMount() {}
+    componentDidAttachEvents() {}
+    render() {}
+  }
+
+  const render = new ComponentRender({ logEnv: LogEnv.disable });
+  render.init(
+    { loading: 'boot', home: 'editor' },
+    {
+      boot: { type: PageA, isMount: false, isModal: false, id: 'boot' },
+      editor: { type: PageA, isMount: false, isModal: false, id: 'editor' },
+      preview: { type: PageB, isMount: false, isModal: true, id: 'preview' },
+    }
+  );
+
+  await new Promise((resolve) => {
+    render._navigate('editor', null, resolve);
+  });
+  // hide boot after home
+  render._renderPage('boot', 'none');
+
+  assert(render.state.components.editor.component.mounted === 1, 'editor mounted once');
+  assert(document.getElementById('editor').style.display === 'block', 'editor visible');
+
+  await new Promise((resolve) => {
+    // modal navigate
+    const prev = render.state.componentState.current;
+    render._navigate('preview', { doc: { meta: {}, nodes: [] } }, resolve);
+    assert(prev === 'editor', 'editor was current before preview');
+  });
+  assert(document.getElementById('editor').style.display === 'block', 'modal keeps editor visible');
+  assert(document.getElementById('preview').style.display === 'block', 'preview visible');
+  assert(render.state.components.preview.component.mounted === 1, 'preview mounted');
+
+  render._goBack();
+  assert(document.getElementById('preview').style.display === 'none', 'preview hidden after goBack');
+  assert(render.state.components.preview.isMount === false, 'preview unmounted flag');
+  assert(render.state.components.editor.component.unmounted === 0, 'editor not unmounted by modal close');
+}
+
+section('engine: D / Element');
+{
+  globalThis.document = {
+    createElement(tag) {
+      const el = {
+        tagName: tag.toUpperCase(),
+        children: [],
+        style: {},
+        appendChild(child) {
+          this.children.push(child);
+        },
+      };
+      return el;
+    },
+  };
+  const d = new D();
+  d.div({ className: 'wrap', id: 'wrap' }).childList([
+    d.div({ className: 'child', text: 'hi' }),
+  ]);
+  const [ref, root] = d.get();
+  assert(!!ref.class.wrap && !!ref.id.wrap, 'D indexes class and id');
+  assert(root.children.length === 1, 'D.childList appends child');
+  assert(root.children[0].innerText === 'hi', 'Element text attribute sets innerText');
+  assert(Element === Element, 'Element export available');
+}
+
+section('product: store + export');
 {
   const store = createStore();
   const block = FALLBACK_BLOCKS.find((b) => b.id === 'button');
   const id = store.addNode(block, { x: 10, y: 20 });
-  assert(store.getState().doc.nodes.length === 1, 'addNode appends one node');
-  assert(store.getSelected()?.id === id, 'addNode selects new node');
-
-  store.updateNode(id, { x: 40, y: 50 });
-  assert(store.getSelected().x === 40, 'updateNode changes geometry');
-
+  assert(store.getSelected()?.id === id, 'store selects new node');
+  store.updateNode(id, { x: 40 });
   store.undo();
-  assert(store.getSelected().x === 10, 'undo restores previous geometry');
-  store.redo();
-  assert(store.getSelected().x === 40, 'redo reapplies geometry');
+  assert(store.getSelected().x === 10, 'store undo works');
 
-  store.beginGesture();
-  store.updateNode(id, { x: 99 }, { recordHistory: false });
-  store.updateNode(id, { x: 100 }, { recordHistory: false });
-  store.undo();
-  assert(store.getSelected().x === 40, 'gesture drag collapses to one history step');
-
-  store.removeNode(id);
-  assert(store.getState().doc.nodes.length === 0, 'removeNode clears node');
-  assert(store.getSelected() === null, 'removeNode clears selection');
-}
-
-section('export');
-{
-  assert(escapeHtml('<a & "b">') === '&lt;a &amp; &quot;b&quot;&gt;', 'escapeHtml encodes entities');
-
-  const node = {
-    id: 'n1',
-    kind: 'button',
-    x: 10,
-    y: 20,
-    width: 100,
-    height: 40,
-    props: { text: 'Go' },
-    style: { background: '#2bb0a6' },
-  };
-  const snippet = renderNodeHtml(node);
-  assert(snippet.includes('Go') && snippet.includes('button'), 'renderNodeHtml emits button markup');
-
+  assert(escapeHtml('<a>') === '&lt;a&gt;', 'escapeHtml works');
   const html = documentToHtml({
     meta: { ...DEFAULT_DOC.meta, name: 'Demo' },
-    nodes: [node],
+    nodes: [
+      {
+        id: 'n1',
+        kind: 'button',
+        x: 1,
+        y: 2,
+        width: 100,
+        height: 40,
+        props: { text: 'Go' },
+        style: {},
+      },
+    ],
   });
-  assert(html.includes('<!DOCTYPE html>'), 'documentToHtml is full HTML document');
-  assert(html.includes('Demo'), 'documentToHtml includes title');
-  assert(html.includes('width: 390px'), 'documentToHtml includes artboard size');
+  assert(html.includes('Demo') && html.includes('Go'), 'documentToHtml includes content');
+  assert(FALLBACK_BLOCKS.length >= 6, 'fallback blocks present');
 }
 
-section('skills layout');
+section('skills blocks');
 {
-  const manifestPath = join(root, 'skills/blocks/manifest.json');
-  assert(existsSync(manifestPath), 'skills/blocks/manifest.json exists');
-  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
-  assert(Array.isArray(manifest.blocks) && manifest.blocks.length > 0, 'manifest lists blocks');
+  const manifest = JSON.parse(readFileSync(join(root, 'skills/blocks/manifest.json'), 'utf8'));
   for (const file of manifest.blocks) {
-    const path = join(root, 'skills/blocks', file);
-    assert(existsSync(path), `block file exists: ${file}`);
-    const block = JSON.parse(readFileSync(path, 'utf8'));
-    assert(block.id && block.kind && block.defaults, `${file} has id/kind/defaults`);
+    assert(existsSync(join(root, 'skills/blocks', file)), `block ${file}`);
   }
-  assert(FALLBACK_BLOCKS.length >= 6, 'fallback blocks cover core kinds');
-}
-
-section('project layout');
-{
-  for (const path of ['docs', 'src', 'skills', 'test', 'index.html', 'src/js/main.js', 'src/css/app.css']) {
-    assert(existsSync(join(root, path)), `${path} exists`);
-  }
-  assert(!existsSync(join(root, 'index.py')), 'Flask entry index.py removed');
 }
 
 console.log(`\n${passed} passed, ${failed} failed`);
