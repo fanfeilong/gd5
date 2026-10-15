@@ -1,0 +1,22 @@
+{
+  "id": "card",
+  "kind": "card",
+  "label": "卡片",
+  "icon": "CD",
+  "defaults": {
+    "width": 320,
+    "height": 140,
+    "props": {
+      "title": "功能亮点",
+      "body": "用纯 HTML / CSS / JS 快速搭出可交互的 live demo。"
+    },
+    "style": {
+      "borderRadius": "12px",
+      "padding": "16px",
+      "background": "#ffffff",
+      "border": "1px solid #e2e8f0",
+      "color": "#1a2330",
+      "boxShadow": "0 8px 24px rgba(26,35,48,.08)"
+    }
+  }
+}

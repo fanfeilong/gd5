@@ -1,0 +1,35 @@
+:root {
+  --font-display: "Segoe UI", "PingFang SC", "Hiragino Sans GB", sans-serif;
+  --font-mono: "SF Mono", "Cascadia Code", "Consolas", monospace;
+
+  --bg-app: #0f1419;
+  --bg-panel: #171d25;
+  --bg-elevated: #1e2630;
+  --bg-canvas: #243040;
+  --bg-artboard: #f7f4ef;
+
+  --text-primary: #e8eef5;
+  --text-secondary: #9aabbc;
+  --text-muted: #6b7c8d;
+  --text-on-light: #1a2330;
+
+  --accent: #2bb0a6;
+  --accent-hover: #35c4b9;
+  --accent-soft: rgba(43, 176, 166, 0.16);
+  --danger: #e06a6a;
+  --border: #2a3544;
+  --border-strong: #3d4d60;
+  --selection: #2bb0a6;
+  --selection-ring: rgba(43, 176, 166, 0.45);
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  --shadow-panel: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+  --toolbar-h: 52px;
+  --palette-w: 220px;
+  --inspector-w: 260px;
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
