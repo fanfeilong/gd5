@@ -2,31 +2,26 @@
 
 ## 启动
 
-需要本地静态服务器（ES modules 无法直接用 `file://` 可靠加载）：
-
 ```bash
-# Python
 python3 -m http.server 8080
-
-# 或 Node
-npx --yes serve -p 8080
+# http://localhost:8080
 ```
 
-打开 http://localhost:8080 。
-
-## 基本操作
+## 产品操作
 
 | 操作 | 方式 |
 |------|------|
-| 添加组件 | 点击左侧积木，或拖到画布 |
-| 选中 / 移动 | 点击并拖动节点 |
-| 编辑属性 | 右侧面板修改文本、尺寸、颜色 |
-| 调整画布 | 右侧「画布宽度 / 高度」 |
-| 预览 | 顶部「预览」 |
-| 导出 | 顶部「导出 HTML」得到独立页面 |
-| 撤销 / 重做 | 工具栏按钮，或 `Ctrl/Cmd+Z` / `Ctrl/Cmd+Y` |
-| 删除 | `Delete` / `Backspace` |
+| 添加组件 | 点击或拖左侧积木 |
+| 编辑属性 | 选中节点后改右侧面板 |
+| 预览 | 顶部「预览」→ 引擎 `navigate('preview')` |
+| 关闭预览 | 「关闭」或 Esc → `goBack()` |
+| 导出 | 「导出 HTML」 |
 
-## 扩展积木
+## 用引擎写新产品页
 
-见 [skills/README.md](../skills/README.md)。
+1. 在 `index.html` 增加 `<div id="myPage">`
+2. `class MyPage extends Component { ... }`
+3. 在 `src/product/main.js` 的 `componentsDef` 注册
+4. `navigator.navigate('myPage', params)`
+
+详见 [engine.md](./engine.md) 与 [skills/engine/](../skills/engine/)。
