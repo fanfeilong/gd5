@@ -1,0 +1,13 @@
+{
+  "name": "protolive-core-blocks",
+  "version": "1.0.0",
+  "description": "Core UI blocks for ProtoLive live demo prototypes",
+  "blocks": [
+    "text.json",
+    "button.json",
+    "input.json",
+    "card.json",
+    "image.json",
+    "navbar.json"
+  ]
+}

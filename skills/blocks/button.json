@@ -1,0 +1,18 @@
+{
+  "id": "button",
+  "kind": "button",
+  "label": "按钮",
+  "icon": "BTN",
+  "defaults": {
+    "width": 140,
+    "height": 44,
+    "props": { "text": "立即体验" },
+    "style": {
+      "background": "#2bb0a6",
+      "color": "#04201e",
+      "borderRadius": "8px",
+      "fontSize": "15px",
+      "fontWeight": "600"
+    }
+  }
+}

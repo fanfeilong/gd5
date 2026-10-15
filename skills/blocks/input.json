@@ -1,0 +1,19 @@
+{
+  "id": "input",
+  "kind": "input",
+  "label": "输入框",
+  "icon": "IN",
+  "defaults": {
+    "width": 260,
+    "height": 44,
+    "props": { "placeholder": "请输入…" },
+    "style": {
+      "borderRadius": "8px",
+      "padding": "0 12px",
+      "fontSize": "14px",
+      "background": "#ffffff",
+      "border": "1px solid #c9d2dc",
+      "color": "#1a2330"
+    }
+  }
+}

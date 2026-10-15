@@ -1,0 +1,16 @@
+{
+  "id": "image",
+  "kind": "image",
+  "label": "占位图",
+  "icon": "IMG",
+  "defaults": {
+    "width": 320,
+    "height": 180,
+    "props": { "alt": "Hero Image" },
+    "style": {
+      "borderRadius": "12px",
+      "background": "linear-gradient(135deg, #dfe6ee, #c5d0dc)",
+      "color": "#5a6b7c"
+    }
+  }
+}

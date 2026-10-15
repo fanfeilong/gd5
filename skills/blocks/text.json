@@ -1,0 +1,17 @@
+{
+  "id": "text",
+  "kind": "text",
+  "label": "文本",
+  "icon": "T",
+  "defaults": {
+    "width": 200,
+    "height": 40,
+    "props": { "text": "标题文本" },
+    "style": {
+      "color": "#1a2330",
+      "fontSize": "20px",
+      "fontWeight": "600",
+      "lineHeight": "1.3"
+    }
+  }
+}
