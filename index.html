@@ -4,65 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ProtoLive — Live Demo 原型设计</title>
-  <link rel="icon" href="src/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="src/css/tokens.css">
-  <link rel="stylesheet" href="src/css/app.css">
+  <link rel="icon" href="src/product/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="src/product/css/tokens.css">
+  <link rel="stylesheet" href="src/product/css/app.css">
 </head>
 <body>
-  <div id="app" class="app">
-    <header class="toolbar">
-      <div class="toolbar__brand">
-        <span class="toolbar__mark" aria-hidden="true"></span>
-        <h1 class="toolbar__title">ProtoLive</h1>
-      </div>
-      <div class="toolbar__actions">
-        <button type="button" id="btn-undo" class="btn btn--ghost" title="撤销">撤销</button>
-        <button type="button" id="btn-redo" class="btn btn--ghost" title="重做">重做</button>
-        <button type="button" id="btn-preview" class="btn btn--secondary">预览</button>
-        <button type="button" id="btn-export" class="btn btn--primary">导出 HTML</button>
-      </div>
-    </header>
+  <!-- Engine page mounts: ComponentRender 按 id 切换 display -->
+  <div id="boot"></div>
+  <div id="editor" style="display: none;"></div>
+  <div id="preview" style="display: none;"></div>
 
-    <aside class="palette" aria-label="组件面板">
-      <h2 class="panel-title">组件</h2>
-      <p class="panel-hint">点击或拖到画布</p>
-      <div id="palette-list" class="palette__list"></div>
-    </aside>
-
-    <main class="workspace" aria-label="设计画布">
-      <div class="artboard-wrap">
-        <div id="artboard" class="artboard" data-drop-zone="true">
-          <div id="canvas" class="canvas"></div>
-        </div>
-      </div>
-    </main>
-
-    <aside class="inspector" aria-label="属性面板">
-      <h2 class="panel-title">属性</h2>
-      <div id="inspector-body" class="inspector__body">
-        <p class="empty-state">选中画布上的元素以编辑属性</p>
-      </div>
-      <div class="inspector__meta">
-        <label class="field">
-          <span>画布宽度</span>
-          <input type="number" id="board-width" min="320" max="1440" step="10" value="390">
-        </label>
-        <label class="field">
-          <span>画布高度</span>
-          <input type="number" id="board-height" min="480" max="2000" step="10" value="844">
-        </label>
-      </div>
-    </aside>
-  </div>
-
-  <div id="preview-modal" class="preview-modal" hidden>
-    <div class="preview-modal__bar">
-      <span>Live Preview</span>
-      <button type="button" id="btn-close-preview" class="btn btn--ghost">关闭</button>
-    </div>
-    <iframe id="preview-frame" class="preview-modal__frame" title="原型预览"></iframe>
-  </div>
-
-  <script type="module" src="src/js/main.js"></script>
+  <script type="module" src="src/product/main.js"></script>
 </body>
 </html>
