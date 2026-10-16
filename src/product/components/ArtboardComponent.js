@@ -5,6 +5,8 @@ import { createNodeElement, syncNodeElement } from '../nodes/index.js';
  * 画布组件：放置 / 拖动 / 选中原型节点。
  */
 export class ArtboardComponent extends Component {
+  static styles = new URL('./ArtboardComponent.css', import.meta.url);
+
   constructor(navigator, logger, { store, getBlock } = {}) {
     super();
     this.navigator = navigator;

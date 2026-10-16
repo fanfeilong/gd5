@@ -4,6 +4,8 @@ import { Component } from '../../engine/index.js';
  * 积木面板组件：列出 blocks，点击 / 拖放到画布。
  */
 export class PaletteComponent extends Component {
+  static styles = new URL('./PaletteComponent.css', import.meta.url);
+
   constructor(navigator, logger, { store, getBlocks, getBlock } = {}) {
     super();
     this.navigator = navigator;

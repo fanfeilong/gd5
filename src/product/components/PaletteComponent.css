@@ -1,0 +1,60 @@
+/* PaletteComponent */
+
+.palette {
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border);
+  padding: 14px 12px;
+  overflow: auto;
+}
+
+.palette__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.palette-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: grab;
+  user-select: none;
+  transition: border-color 160ms var(--ease), background 160ms var(--ease);
+}
+
+.palette-item:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.palette-item:active {
+  cursor: grabbing;
+}
+
+.palette-item__icon {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  background: var(--bg-app);
+  color: var(--accent);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.palette-item__label {
+  font-size: 0.9rem;
+}
+
+@media (max-width: 900px) {
+  .palette {
+    border: none;
+    border-bottom: 1px solid var(--border);
+    max-height: 180px;
+  }
+}

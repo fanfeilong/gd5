@@ -43,6 +43,22 @@ goBack / child.unmount()
 | 忘了 `removeEventListener` | `on` / `onId`，unmount 自动卸 |
 | 每个组件手写 `state = { data, ref }` | 基类已提供 |
 | DidUnMount 里再清 DOM | 不必；引擎 teardown 统一清 |
+| 样式堆在全局 `app.css` | 旁挂 `FooComponent.css` + `static styles` |
+
+## 样式与组件同目录
+
+```js
+export class ToolbarComponent extends Component {
+  static styles = new URL('./ToolbarComponent.css', import.meta.url);
+  // …
+}
+```
+
+- `mount` 前会 `adoptStylesFor(this.constructor)`，相同 URL / 文本只注入一次
+- 也可手写：`Component.adoptStyles(urlOrCssText)` / `adoptStylesFor(Ctor)`
+- **全局**：`css/tokens.css`（变量）+ `css/base.css`（reset、页槽、`.btn` / `.field`）
+- **组件私有**：旁挂 `components/FooComponent.css`，不要再写进大一锅 `app.css`
+- unmount **不**移除样式（多实例 / 再挂载共享）
 
 ### 推荐骨架
 
@@ -93,6 +109,7 @@ this.navigator.refresh('preview');     // 刷新指定已挂载页
 | `paint(build)` | 整棵重建 |
 | `ensureShell(probe, build)` | 壳只建一次 |
 | `on(target, type, fn)` / `onId(id, type, fn)` | 事件（自动清理） |
+| `static styles` / `adoptStyles` | 旁挂 CSS，mount 注入 |
 | `setData` / `refresh` | 挂载后更新 |
 
 ## D / Element（实 DOM DSL）

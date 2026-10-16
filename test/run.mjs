@@ -3,7 +3,19 @@
  * Run: node test/run.mjs
  */
 
-import { Log, LogEnv, Component, ComponentRender, D, Element, bind } from '../src/engine/index.js';
+import {
+  Log,
+  LogEnv,
+  Component,
+  ComponentRender,
+  D,
+  Element,
+  bind,
+  adoptStyles,
+  adoptStylesFor,
+  adoptedStyleKeys,
+  resetAdoptedStyles,
+} from '../src/engine/index.js';
 import { createStore, DEFAULT_DOC } from '../src/product/lib/store.js';
 import { documentToHtml, escapeHtml, renderNodeHtml } from '../src/product/lib/export.js';
 import { FALLBACK_BLOCKS } from '../src/product/lib/skills.js';
@@ -52,11 +64,22 @@ section('layout: product vs engine');
     'src/product/nodes/button.js',
     'docs/architecture.md',
     'skills/engine/README.md',
+    'src/engine/styles.js',
+    'src/product/css/tokens.css',
+    'src/product/css/base.css',
+    'src/product/components/ToolbarComponent.css',
+    'src/product/components/PaletteComponent.css',
+    'src/product/components/ArtboardComponent.css',
+    'src/product/components/InspectorComponent.css',
+    'src/product/components/EditorComponent.css',
+    'src/product/components/PreviewComponent.css',
+    'src/product/components/BootComponent.css',
   ]) {
     assert(existsSync(join(root, path)), `${path} exists`);
   }
   assert(!existsSync(join(root, 'src/js')), 'legacy src/js removed');
   assert(!existsSync(join(root, 'src/product/views')), 'ad-hoc views/ removed');
+  assert(!existsSync(join(root, 'src/product/css/app.css')), 'monolithic app.css removed');
   assert(!existsSync(join(root, 'index.py')), 'Flask entry removed');
 }
 
@@ -343,6 +366,64 @@ section('product: component ergonomics');
   assert(toolbarSrc.includes('onId'), 'Toolbar uses onId');
   assert(!toolbarSrc.includes('D.clear'), 'Toolbar does not hand-clear host');
   assert(editorSrc.includes('ensureShell') && editorSrc.includes("this.on(window"), 'Editor uses ensureShell + on(window)');
+  assert(toolbarSrc.includes('static styles'), 'Toolbar declares static styles');
+  assert(editorSrc.includes('EditorComponent.css'), 'Editor styles co-located');
+}
+
+section('engine: adoptStyles');
+{
+  resetAdoptedStyles();
+  const headKids = [];
+  globalThis.document = {
+    head: {
+      appendChild(el) {
+        headKids.push(el);
+        if (el.tagName === 'LINK' && typeof el.onload === 'function') {
+          queueMicrotask(() => el.onload());
+        }
+      },
+    },
+    createElement(tag) {
+      return {
+        tagName: tag.toUpperCase(),
+        dataset: {},
+        rel: '',
+        href: '',
+        textContent: '',
+        onload: null,
+        onerror: null,
+      };
+    },
+  };
+
+  await adoptStyles('.x { color: red }', 'text-x');
+  assert(headKids.some((el) => el.tagName === 'STYLE' && el.textContent.includes('color: red')), 'adoptStyles injects style text');
+  const before = headKids.length;
+  await adoptStyles('.x { color: red }', 'text-x');
+  assert(headKids.length === before, 'adoptStyles dedupes by key');
+  assert(adoptedStyleKeys().includes('text-x'), 'adoptedStyleKeys lists keys');
+
+  class Styled extends Component {
+    static styles = '.panel { display: block }';
+  }
+  await adoptStylesFor(Styled);
+  assert(
+    headKids.some((el) => el.tagName === 'STYLE' && el.textContent.includes('display: block')),
+    'adoptStylesFor reads static styles'
+  );
+
+  class Linked extends Component {
+    static styles = new URL('http://example.test/panel.css');
+    render() {}
+  }
+  const host = { id: 'h', firstChild: null, removeChild() {}, appendChild() {} };
+  const linked = new Linked();
+  await linked.mount(host);
+  assert(
+    headKids.some((el) => el.tagName === 'LINK' && el.href.includes('panel.css')),
+    'mount adopts URL stylesheet'
+  );
+  resetAdoptedStyles();
 }
 
 section('engine: D / Element');

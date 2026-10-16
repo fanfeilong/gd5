@@ -4,6 +4,8 @@ import { Component } from '../../engine/index.js';
  * 顶栏组件：撤销 / 重做 / 预览 / 导出。
  */
 export class ToolbarComponent extends Component {
+  static styles = new URL('./ToolbarComponent.css', import.meta.url);
+
   constructor(navigator, logger, { store, onExport } = {}) {
     super();
     this.navigator = navigator;
