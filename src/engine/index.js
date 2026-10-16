@@ -7,5 +7,5 @@
 
 export { Component } from './component.js';
 export { ComponentRender, defaultGetUserInfo } from './component-render.js';
-export { Element, D } from './element.js';
+export { Element, D, bind } from './element.js';
 export { Log, LogEnv } from './log.js';

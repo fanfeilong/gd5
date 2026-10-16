@@ -51,30 +51,42 @@ this.navigator.refresh('preview');     // 刷新指定已挂载页
 
 产品层应优先用 `D` 拼视图，而不是 `createElement` / `innerHTML`。
 
+### 降噪写法（推荐）
+
 ```js
-const d = new D();
-d.button({
-  id: 'save',
-  key: 'save',                 // 逻辑索引 → ref.key.save
-  className: 'btn btn--primary', // 可多 class，不再要求唯一
-  type: 'button',
-  text: '保存',
-  dataset: { action: 'save' },
-  style: { marginTop: '8px' },
-});
-const [ref, root] = d.get();
+import { bind } from '../src/engine/index.js';
+
+const { div, header, h1, button, map, get } = bind();
+
+div({ className: 'app', id: 'appRoot' },
+  header({ className: 'toolbar' },
+    h1({ className: 'toolbar__title', text: 'ProtoLive' }),
+    ...map(
+      actions,
+      (a, _i, key) => button({ key, className: 'btn', text: a.label }),
+      (a) => a.id,
+    ),
+  ),
+);
+
+const [ref, root] = get();
 ```
+
+| 能力 | 用法 |
+|------|------|
+| 尾参 children | `d.div(props, child1, child2)`（仍兼容 `.childList`） |
+| `bind()` / `D.tags()` | 解构短名 + `h(tag, props, ...kids)` |
+| `map(list, render, keyOf)` | 列表自动带 `key` |
+
+### 属性
 
 | 字段 | 作用 |
 |------|------|
 | `className` | 真实 CSS（可多个） |
 | `id` | DOM id + `ref.id` |
-| `key` | 列表/重复 class 时的逻辑索引 → `ref.key` |
+| `key` | 逻辑索引 → `ref.key`（列表优先交给 `map`） |
 | `dataset` / `style` / `attrs` | 数据属性、样式、setAttribute |
 | `text` | innerText |
-| `d.el(tag, opts)` | 任意标签 |
-
-列表项用 `key`，不要靠 className 唯一性硬撑——那是早期限制，已放开。
 
 ## 页面槽
 

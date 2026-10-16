@@ -1,19 +1,40 @@
 /**
  * 创建一个 HTML Element（引擎）
- * 1. 构造函数可方便的指定索引 ref，要创建的标签 tag，以及属性 attributes
- * 2. 提供 childList 方法用于组合子元素
- * 3. 提供 dom 方法用于返回实际的 HTML Element
  *
- * 属性约定（相对早期「className 必须唯一」的改进）：
- * - className：真实 CSS class，可多个，不再要求唯一
- * - id：DOM id，并写入 ref.id[id]
- * - key：逻辑索引，写入 ref.key[key]（列表项、重复 class 时用这个，而不是滥用 className）
- * - text：innerText
- * - dataset：Object.assign 到 element.dataset
- * - style：对象则 Object.assign 到 element.style，字符串则 style.cssText
- * - attrs：需要 setAttribute 的额外属性
- * - 其它字段：当作 DOM 属性赋值（type/value/draggable/…）
+ * 属性约定：
+ * - className：真实 CSS class，可多个
+ * - id → ref.id；key → ref.key
+ * - text / dataset / style / attrs
+ * - 其它字段：DOM 属性
+ *
+ * 组合（降噪）：
+ * - 尾参 children：`d.div(props, child1, child2)`（仍支持 `.childList`）
+ * - `bind(d)` / `D.tags()`：解构短名 + `h`
+ * - `d.map(list, render, keyOf)`：列表自动带 key
  */
+
+function isPlainProps(value) {
+  return (
+    value != null &&
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    typeof value.dom !== 'function'
+  );
+}
+
+function flattenChildren(children) {
+  const out = [];
+  const walk = (list) => {
+    for (const item of list) {
+      if (item == null || item === false) continue;
+      if (Array.isArray(item)) walk(item);
+      else out.push(item);
+    }
+  };
+  walk(children);
+  return out;
+}
+
 export class Element {
   constructor(ref, tag, attributes = {}) {
     this.ref = ref;
@@ -32,7 +53,6 @@ export class Element {
 
     if (className != null) {
       e.className = className;
-      // 兼容旧用法：仍尝试按完整 className 字符串索引；冲突时不 alert，后写覆盖
       this.ref.class[className] = e;
     }
 
@@ -85,11 +105,7 @@ export class Element {
   }
 
   childList(list) {
-    for (const e of list) {
-      if (e != null) {
-        this.e.appendChild(e.dom());
-      }
-    }
+    appendKids(this, list);
     return this;
   }
 
@@ -98,24 +114,51 @@ export class Element {
   }
 }
 
+function appendKids(element, children) {
+  for (const kid of flattenChildren(children)) {
+    if (typeof kid === 'string' || typeof kid === 'number') {
+      element.e.appendChild(document.createTextNode(String(kid)));
+    } else if (kid && typeof kid.dom === 'function') {
+      element.e.appendChild(kid.dom());
+    }
+  }
+}
+
+const TAGS = [
+  'div',
+  'img',
+  'b',
+  's',
+  'strong',
+  'section',
+  'li',
+  'ul',
+  'button',
+  'input',
+  'iframe',
+  'header',
+  'aside',
+  'main',
+  'h1',
+  'h2',
+  'p',
+  'span',
+  'label',
+  'textarea',
+];
+
 /**
- * 可组合的层次 HTML Element 创建方法，例如:
- *
- * ```
+ * @example
  * const d = new D();
- * d.div({ className: 'container', id: 'home' }).childList([
- *   d.div({ className: 'head', text: '标题' }),
- *   d.div({ className: 'body' }).childList([
- *     d.img({ id: 'logo' }),
- *     d.div({ id: 'desc', text: '描述' }),
- *   ]),
- * ]);
- * const [ref, root] = d.get();
- * // ref.id.home / ref.key.* / ref.class['container']
- * ```
+ * d.div({ className: 'box', id: 'home' },
+ *   d.div({ className: 'title', text: 'Hi' }),
+ *   d.p({ text: 'body' }),
+ * );
  *
- * 列表项请用 key，不要靠 className 唯一性：
- * `d.button({ key: 'block-'+id, className: 'palette-item', dataset: { skillId: id } })`
+ * const { div, button, get, map, h } = bind();
+ * div({ className: 'row' },
+ *   ...map(items, (item, i, key) => button({ key, text: item.label }), (item) => item.id),
+ * );
  */
 export class D {
   constructor() {
@@ -123,94 +166,135 @@ export class D {
     this.root = null;
   }
 
-  div(options) {
-    return this._create('div', options);
+  /** 解构短名：`const { div, h, map, get } = D.tags()` */
+  static tags() {
+    return bind(new D());
   }
 
-  img(options) {
-    return this._create('img', options);
+  div(props, ...children) {
+    return this._create('div', props, ...children);
   }
 
-  b(options) {
-    return this._create('b', options);
+  img(props, ...children) {
+    return this._create('img', props, ...children);
   }
 
-  s(options) {
-    return this._create('s', options);
+  b(props, ...children) {
+    return this._create('b', props, ...children);
   }
 
-  strong(options) {
-    return this._create('strong', options);
+  s(props, ...children) {
+    return this._create('s', props, ...children);
   }
 
-  section(options) {
-    return this._create('section', options);
+  strong(props, ...children) {
+    return this._create('strong', props, ...children);
   }
 
-  li(options) {
-    return this._create('li', options);
+  section(props, ...children) {
+    return this._create('section', props, ...children);
   }
 
-  ul(options) {
-    return this._create('ul', options);
+  li(props, ...children) {
+    return this._create('li', props, ...children);
   }
 
-  button(options) {
-    return this._create('button', options);
+  ul(props, ...children) {
+    return this._create('ul', props, ...children);
   }
 
-  input(options) {
-    return this._create('input', options);
+  button(props, ...children) {
+    return this._create('button', props, ...children);
   }
 
-  iframe(options) {
-    return this._create('iframe', options);
+  input(props, ...children) {
+    return this._create('input', props, ...children);
   }
 
-  header(options) {
-    return this._create('header', options);
+  iframe(props, ...children) {
+    return this._create('iframe', props, ...children);
   }
 
-  aside(options) {
-    return this._create('aside', options);
+  header(props, ...children) {
+    return this._create('header', props, ...children);
   }
 
-  main(options) {
-    return this._create('main', options);
+  aside(props, ...children) {
+    return this._create('aside', props, ...children);
   }
 
-  h1(options) {
-    return this._create('h1', options);
+  main(props, ...children) {
+    return this._create('main', props, ...children);
   }
 
-  h2(options) {
-    return this._create('h2', options);
+  h1(props, ...children) {
+    return this._create('h1', props, ...children);
   }
 
-  p(options) {
-    return this._create('p', options);
+  h2(props, ...children) {
+    return this._create('h2', props, ...children);
   }
 
-  span(options) {
-    return this._create('span', options);
+  p(props, ...children) {
+    return this._create('p', props, ...children);
   }
 
-  label(options) {
-    return this._create('label', options);
+  span(props, ...children) {
+    return this._create('span', props, ...children);
   }
 
-  textarea(options) {
-    return this._create('textarea', options);
+  label(props, ...children) {
+    return this._create('label', props, ...children);
   }
 
-  /** 任意标签：d.el('nav', { className: 'x' }) */
-  el(tag, options) {
-    return this._create(tag, options);
+  textarea(props, ...children) {
+    return this._create('textarea', props, ...children);
   }
 
-  _create(tag, options) {
-    const e = new Element(this.ref, tag, options || {});
-    if (this.root == null) this.root = e;
+  /** 任意标签：d.el('nav', props, ...children) */
+  el(tag, props, ...children) {
+    return this._create(tag, props, ...children);
+  }
+
+  /**
+   * 列表渲染：自动把 keyOf(item) 传给 render，并写入 ref.key。
+   * @param {Array} list
+   * @param {(item, index, key) => Element} render
+   * @param {(item, index) => string|number} [keyOf]
+   */
+  map(list, render, keyOf = (_item, index) => String(index)) {
+    return (list || []).map((item, index) => {
+      const key = keyOf(item, index);
+      const node = render(item, index, key);
+      if (node && node.e && key != null) {
+        this.ref.key[key] = node.e;
+      }
+      return node;
+    });
+  }
+
+  _create(tag, props, ...children) {
+    let attrs = {};
+    let kids = children;
+
+    if (!isPlainProps(props)) {
+      kids = props === undefined ? children : [props, ...children];
+      attrs = {};
+    } else {
+      attrs = props || {};
+    }
+
+    const e = new Element(this.ref, tag, attrs);
+    const flat = flattenChildren(kids);
+    if (flat.length) appendKids(e, flat);
+
+    // 尾参求值时子节点先创建，会暂时占住 root；若本节点包住了当前 root，提升为自己
+    const wrapsRoot = flat.some(
+      (k) => k && typeof k.dom === 'function' && (k === this.root || k.e === this.root?.e)
+    );
+    if (this.root == null || wrapsRoot) {
+      this.root = e;
+    }
     return e;
   }
 
@@ -224,4 +308,30 @@ export class D {
       e.removeChild(e.firstChild);
     }
   }
+}
+
+/**
+ * 绑定到同一个 D 实例，便于解构短名。
+ * @param {D} [d]
+ */
+export function bind(d = new D()) {
+  const api = {
+    d,
+    h(tag, props, ...children) {
+      return d.el(tag, props, ...children);
+    },
+    map(list, render, keyOf) {
+      return d.map(list, render, keyOf);
+    },
+    get() {
+      return d.get();
+    },
+    clear: D.clear,
+  };
+
+  for (const tag of TAGS) {
+    api[tag] = (props, ...children) => d[tag](props, ...children);
+  }
+
+  return api;
 }

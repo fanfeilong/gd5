@@ -1,4 +1,4 @@
-import { Component, D } from '../../engine/index.js';
+import { Component, D, bind } from '../../engine/index.js';
 import { createStore, uid } from '../lib/store.js';
 import { downloadHtml } from '../lib/export.js';
 import { loadSkillBlocks } from '../lib/skills.js';
@@ -61,9 +61,9 @@ function applyNodeStyles(el, node) {
   Object.assign(el.style, node.style || {});
 }
 
-/** 用 D 创建画布节点（替代 createElement + innerHTML） */
+/** 用 D 尾参组合创建画布节点 */
 function createNodeElement(node) {
-  const d = new D();
+  const { div, button, input, strong, p, span, get } = bind();
   const base = {
     key: node.id,
     className: 'prototype-node',
@@ -72,49 +72,51 @@ function createNodeElement(node) {
 
   switch (node.kind) {
     case 'button':
-      d.button({ ...base, type: 'button', text: node.props.text || '' });
+      button({ ...base, type: 'button', text: node.props.text || '' });
       break;
     case 'input':
-      d.input({
+      input({
         ...base,
         placeholder: node.props.placeholder || '',
         readOnly: true,
       });
       break;
     case 'card':
-      d.div(base).childList([
-        d.strong({
+      div(
+        base,
+        strong({
           key: `${node.id}__title`,
           style: { display: 'block', marginBottom: '8px' },
           text: node.props.title || '',
         }),
-        d.p({
+        p({
           key: `${node.id}__body`,
           style: { margin: '0', opacity: '0.8' },
           text: node.props.body || '',
-        }),
-      ]);
+        })
+      );
       break;
     case 'navbar':
-      d.div(base).childList([
-        d.span({ key: `${node.id}__title`, text: node.props.title || '' }),
-        d.span({
+      div(
+        base,
+        span({ key: `${node.id}__title`, text: node.props.title || '' }),
+        span({
           key: `${node.id}__action`,
           style: { opacity: '0.7' },
           text: node.props.action || '',
-        }),
-      ]);
+        })
+      );
       break;
     case 'image':
-      d.div({ ...base, text: node.props.alt || 'Image' });
+      div({ ...base, text: node.props.alt || 'Image' });
       break;
     case 'text':
     default:
-      d.div({ ...base, text: node.props.text || '' });
+      div({ ...base, text: node.props.text || '' });
       break;
   }
 
-  const [ref, root] = d.get();
+  const [ref, root] = get();
   root._dref = ref;
   applyNodeStyles(root, node);
   return root;
@@ -294,85 +296,86 @@ export class EditorComponent extends Component {
     const host = document.getElementById('editor');
     D.clear(host);
 
-    const d = new D();
-    d.div({ className: 'app', id: 'appRoot' }).childList([
-      d.header({ className: 'toolbar', id: 'toolbar' }).childList([
-        d.div({ className: 'toolbar__brand', id: 'brand' }).childList([
-          d.span({ className: 'toolbar__mark', id: 'brandMark' }),
-          d.h1({ className: 'toolbar__title', id: 'brandTitle', text: 'ProtoLive' }),
-        ]),
-        d.div({ className: 'toolbar__actions', id: 'toolbarActions' }).childList([
-          d.button({
-            id: 'btnUndo',
-            type: 'button',
-            className: 'btn btn--ghost',
-            text: '撤销',
-          }),
-          d.button({
-            id: 'btnRedo',
-            type: 'button',
-            className: 'btn btn--ghost',
-            text: '重做',
-          }),
-          d.button({
+    const { div, header, aside, main, h1, h2, p, span, button, input, label, get } = bind();
+
+    div(
+      { className: 'app', id: 'appRoot' },
+      header(
+        { className: 'toolbar', id: 'toolbar' },
+        div(
+          { className: 'toolbar__brand', id: 'brand' },
+          span({ className: 'toolbar__mark', id: 'brandMark' }),
+          h1({ className: 'toolbar__title', id: 'brandTitle', text: 'ProtoLive' })
+        ),
+        div(
+          { className: 'toolbar__actions', id: 'toolbarActions' },
+          button({ id: 'btnUndo', type: 'button', className: 'btn btn--ghost', text: '撤销' }),
+          button({ id: 'btnRedo', type: 'button', className: 'btn btn--ghost', text: '重做' }),
+          button({
             id: 'btnPreview',
             type: 'button',
             className: 'btn btn--secondary',
             text: '预览',
           }),
-          d.button({
+          button({
             id: 'btnExport',
             type: 'button',
             className: 'btn btn--primary',
             text: '导出 HTML',
-          }),
-        ]),
-      ]),
-      d.aside({ className: 'palette', id: 'palette' }).childList([
-        d.h2({ className: 'panel-title', id: 'paletteTitle', text: '组件' }),
-        d.p({ className: 'panel-hint', id: 'paletteHint', text: '点击或拖到画布' }),
-        d.div({ className: 'palette__list', id: 'paletteList' }),
-      ]),
-      d.main({ className: 'workspace', id: 'workspace' }).childList([
-        d.div({ className: 'artboard-wrap', id: 'artboardWrap' }).childList([
-          d.div({
-            className: 'artboard',
-            id: 'artboard',
-            dataset: { dropZone: 'true' },
-          }).childList([d.div({ className: 'canvas', id: 'canvas' })]),
-        ]),
-      ]),
-      d.aside({ className: 'inspector', id: 'inspector' }).childList([
-        d.h2({ className: 'panel-title', id: 'inspectorTitle', text: '属性' }),
-        d.div({ className: 'inspector__body', id: 'inspectorBody' }),
-        d.div({ className: 'inspector__meta', id: 'inspectorMeta' }).childList([
-          d.label({ className: 'field', id: 'fieldWidth' }).childList([
-            d.span({ id: 'labelWidth', text: '画布宽度' }),
-            d.input({
+          })
+        )
+      ),
+      aside(
+        { className: 'palette', id: 'palette' },
+        h2({ className: 'panel-title', id: 'paletteTitle', text: '组件' }),
+        p({ className: 'panel-hint', id: 'paletteHint', text: '点击或拖到画布' }),
+        div({ className: 'palette__list', id: 'paletteList' })
+      ),
+      main(
+        { className: 'workspace', id: 'workspace' },
+        div(
+          { className: 'artboard-wrap', id: 'artboardWrap' },
+          div(
+            { className: 'artboard', id: 'artboard', dataset: { dropZone: 'true' } },
+            div({ className: 'canvas', id: 'canvas' })
+          )
+        )
+      ),
+      aside(
+        { className: 'inspector', id: 'inspector' },
+        h2({ className: 'panel-title', id: 'inspectorTitle', text: '属性' }),
+        div({ className: 'inspector__body', id: 'inspectorBody' }),
+        div(
+          { className: 'inspector__meta', id: 'inspectorMeta' },
+          label(
+            { className: 'field', id: 'fieldWidth' },
+            span({ id: 'labelWidth', text: '画布宽度' }),
+            input({
               id: 'boardWidth',
               type: 'number',
               min: 320,
               max: 1440,
               step: 10,
               value: 390,
-            }),
-          ]),
-          d.label({ className: 'field', id: 'fieldHeight' }).childList([
-            d.span({ id: 'labelHeight', text: '画布高度' }),
-            d.input({
+            })
+          ),
+          label(
+            { className: 'field', id: 'fieldHeight' },
+            span({ id: 'labelHeight', text: '画布高度' }),
+            input({
               id: 'boardHeight',
               type: 'number',
               min: 480,
               max: 2000,
               step: 10,
               value: 844,
-            }),
-          ]),
-        ]),
-      ]),
-    ]);
+            })
+          )
+        )
+      )
+    );
 
-    const [ref, root] = d.get();
+    const [ref, root] = get();
     this.state.ref = ref;
     this._renderPalette(ref.id.paletteList);
     host.appendChild(root);
@@ -380,31 +383,27 @@ export class EditorComponent extends Component {
 
   _renderPalette(listEl) {
     D.clear(listEl);
-    this.blocks.forEach((block) => {
-      const itemD = new D();
-      itemD
-        .button({
-          key: `palette-${block.id}`,
-          type: 'button',
-          className: 'palette-item',
-          draggable: true,
-          dataset: { skillId: block.id },
-        })
-        .childList([
-          itemD.span({
-            key: `palette-${block.id}-icon`,
+    const { button, span, map } = bind();
+    const items = map(
+      this.blocks,
+      (block, _i, key) =>
+        button(
+          {
+            key,
+            type: 'button',
+            className: 'palette-item',
+            draggable: true,
+            dataset: { skillId: block.id },
+          },
+          span({
             className: 'palette-item__icon',
             text: block.icon || block.kind.slice(0, 3).toUpperCase(),
           }),
-          itemD.span({
-            key: `palette-${block.id}-label`,
-            className: 'palette-item__label',
-            text: block.label,
-          }),
-        ]);
-      const [, root] = itemD.get();
-      listEl.appendChild(root);
-    });
+          span({ className: 'palette-item__label', text: block.label })
+        ),
+      (block) => `palette-${block.id}`
+    );
+    items.forEach((item) => listEl.appendChild(item.dom()));
   }
 
   _addBlock(skillId) {
@@ -461,57 +460,55 @@ export class EditorComponent extends Component {
 
     const node = this.store.getSelected();
     if (!node) {
-      const empty = new D();
-      empty.p({
+      const { p, get } = bind();
+      p({
         className: 'empty-state',
         key: 'inspector-empty',
         text: '选中画布上的元素以编辑属性',
       });
-      const [, root] = empty.get();
-      body.appendChild(root);
+      body.appendChild(get()[1]);
       return;
     }
 
-    const d = new D();
-    // 先建根，避免 field/input 抢占 D.root
-    const rootEl = d.div({ key: 'inspector-root', className: 'inspector-stack' });
+    const { div, p, span, label, input, textarea, button, get } = bind();
+    // 先建根，避免 field 抢 root
+    const rootEl = div({ key: 'inspector-root', className: 'inspector-stack' });
 
     const field = (labelText, controlKey, controlEl) =>
-      d.label({ className: 'field', key: `field-${controlKey}` }).childList([
-        d.span({ key: `label-${controlKey}`, text: labelText }),
-        controlEl,
-      ]);
+      label({ className: 'field', key: `field-${controlKey}` }, span({ text: labelText }), controlEl);
 
-    const children = [
-      d.p({
+    const kids = [
+      p({
         className: 'panel-hint',
         key: 'inspector-hint',
         text: `${node.label || node.kind} · ${node.id}`,
       }),
-      d.div({ className: 'field-row', key: 'geo-xy' }).childList([
-        field('X', 'geo-x', d.input({ key: 'geo-x', type: 'number', value: node.x, dataset: { geo: 'x' } })),
-        field('Y', 'geo-y', d.input({ key: 'geo-y', type: 'number', value: node.y, dataset: { geo: 'y' } })),
-      ]),
-      d.div({ className: 'field-row', key: 'geo-wh' }).childList([
+      div(
+        { className: 'field-row', key: 'geo-xy' },
+        field('X', 'geo-x', input({ key: 'geo-x', type: 'number', value: node.x, dataset: { geo: 'x' } })),
+        field('Y', 'geo-y', input({ key: 'geo-y', type: 'number', value: node.y, dataset: { geo: 'y' } }))
+      ),
+      div(
+        { className: 'field-row', key: 'geo-wh' },
         field(
           '宽',
           'geo-w',
-          d.input({ key: 'geo-w', type: 'number', value: node.width, dataset: { geo: 'width' } })
+          input({ key: 'geo-w', type: 'number', value: node.width, dataset: { geo: 'width' } })
         ),
         field(
           '高',
           'geo-h',
-          d.input({ key: 'geo-h', type: 'number', value: node.height, dataset: { geo: 'height' } })
-        ),
-      ]),
+          input({ key: 'geo-h', type: 'number', value: node.height, dataset: { geo: 'height' } })
+        )
+      ),
     ];
 
     if ('text' in node.props) {
-      children.push(
+      kids.push(
         field(
           '文本',
           'prop-text',
-          d.input({
+          input({
             key: 'prop-text',
             type: 'text',
             value: node.props.text || '',
@@ -521,11 +518,11 @@ export class EditorComponent extends Component {
       );
     }
     if ('placeholder' in node.props) {
-      children.push(
+      kids.push(
         field(
           '占位符',
           'prop-placeholder',
-          d.input({
+          input({
             key: 'prop-placeholder',
             type: 'text',
             value: node.props.placeholder || '',
@@ -535,11 +532,11 @@ export class EditorComponent extends Component {
       );
     }
     if ('title' in node.props) {
-      children.push(
+      kids.push(
         field(
           '标题',
           'prop-title',
-          d.input({
+          input({
             key: 'prop-title',
             type: 'text',
             value: node.props.title || '',
@@ -549,11 +546,11 @@ export class EditorComponent extends Component {
       );
     }
     if ('body' in node.props) {
-      children.push(
+      kids.push(
         field(
           '正文',
           'prop-body',
-          d.textarea({
+          textarea({
             key: 'prop-body',
             rows: 3,
             value: node.props.body || '',
@@ -563,11 +560,11 @@ export class EditorComponent extends Component {
       );
     }
     if ('action' in node.props) {
-      children.push(
+      kids.push(
         field(
           '操作文案',
           'prop-action',
-          d.input({
+          input({
             key: 'prop-action',
             type: 'text',
             value: node.props.action || '',
@@ -577,11 +574,11 @@ export class EditorComponent extends Component {
       );
     }
     if ('alt' in node.props) {
-      children.push(
+      kids.push(
         field(
           '说明',
           'prop-alt',
-          d.input({
+          input({
             key: 'prop-alt',
             type: 'text',
             value: node.props.alt || '',
@@ -591,11 +588,11 @@ export class EditorComponent extends Component {
       );
     }
 
-    children.push(
+    kids.push(
       field(
         '背景色',
         'style-bg',
-        d.input({
+        input({
           key: 'style-bg',
           type: 'text',
           value: node.style.background || '',
@@ -605,7 +602,7 @@ export class EditorComponent extends Component {
       field(
         '文字色',
         'style-color',
-        d.input({
+        input({
           key: 'style-color',
           type: 'text',
           value: node.style.color || '',
@@ -615,7 +612,7 @@ export class EditorComponent extends Component {
       field(
         '字号',
         'style-fs',
-        d.input({
+        input({
           key: 'style-fs',
           type: 'text',
           value: node.style.fontSize || '',
@@ -625,27 +622,27 @@ export class EditorComponent extends Component {
       field(
         '圆角',
         'style-br',
-        d.input({
+        input({
           key: 'style-br',
           type: 'text',
           value: node.style.borderRadius || '',
           dataset: { style: 'borderRadius' },
         })
       ),
-      d.div({ className: 'inspector-actions', key: 'inspector-actions' }).childList([
-        d.button({
+      div(
+        { className: 'inspector-actions', key: 'inspector-actions' },
+        button({
           key: 'btn-delete',
           type: 'button',
           className: 'btn btn--danger',
           text: '删除',
           dataset: { action: 'delete' },
-        }),
-      ])
+        })
+      )
     );
 
-    rootEl.childList(children);
-
-    const [ref, root] = d.get();
+    rootEl.childList(kids);
+    const [ref, root] = get();
     body.appendChild(root);
 
     Object.values(ref.key || {}).forEach((el) => {

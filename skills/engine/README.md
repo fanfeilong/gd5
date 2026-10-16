@@ -34,29 +34,26 @@ this.setData({ message: 'updated' });
 ## Skill：实 DOM 组合（优先 D，少手写 DOM）
 
 ```js
-const d = new D();
-d.div({ className: 'box', id: 'box' }).childList([
-  d.div({ className: 'title panel-title', text: 'Hello' }), // 多 class OK
-]);
-const [ref, root] = d.get();
+import { bind } from '../../src/engine/index.js';
+
+const { div, button, map, get } = bind();
+
+div({ className: 'box', id: 'box' },
+  div({ className: 'title panel-title', text: 'Hello' }),
+  ...map(
+    items,
+    (item, _i, key) =>
+      button({ key, className: 'palette-item', dataset: { skillId: item.id }, text: item.label }),
+    (item) => item.id,
+  ),
+);
+
+const [ref, root] = get();
 host.appendChild(root);
 ```
 
-列表：
-
-```js
-items.forEach((item) => {
-  const row = new D();
-  row.button({
-    key: item.id,
-    className: 'palette-item',
-    dataset: { skillId: item.id },
-    text: item.label,
-  });
-  host.appendChild(row.get()[1]);
-});
-```
-
-- 用 `key` / `id` 做索引，`className` 只表达样式
-- 先建根节点再 `childList`，避免子节点抢占 `D.root`
-- 产品里避免 `innerHTML` / 零散 `createElement`（导出下载链等边界除外）
+- 尾参 children，少写 `.childList`
+- `bind()` 解构短名，少写 `d.`
+- 列表用 `map(..., keyOf)`，少手写 `key`
+- 先建根再挂子节点，避免抢 `D.root`
+- 避免 `innerHTML` / 零散 `createElement`

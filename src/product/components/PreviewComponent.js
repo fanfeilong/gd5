@@ -1,8 +1,8 @@
-import { Component, D } from '../../engine/index.js';
+import { Component, D, bind } from '../../engine/index.js';
 import { documentToHtml } from '../lib/export.js';
 
 /**
- * Live Preview（产品）— 模态页；壳层用 D，refresh 只绑 data。
+ * Live Preview（产品）— 模态页；壳层用 bind + 尾参 children。
  */
 export class PreviewComponent extends Component {
   constructor(navigator, logger) {
@@ -70,38 +70,41 @@ export class PreviewComponent extends Component {
 
     if (!hasShell) {
       D.clear(host);
+      const { div, span, button, iframe, get } = bind();
 
-      const d = new D();
-      d.div({ className: 'preview-shell', id: 'previewShell' }).childList([
-        d.div({ className: 'preview-shell__bar', id: 'previewBar' }).childList([
-          d.span({ id: 'previewTitle', text: this.state.data.title }),
-          d.div({
-            className: 'preview-shell__actions',
-            id: 'previewActions',
-            style: { display: 'flex', gap: '8px' },
-          }).childList([
-            d.button({
+      div(
+        { className: 'preview-shell', id: 'previewShell' },
+        div(
+          { className: 'preview-shell__bar', id: 'previewBar' },
+          span({ id: 'previewTitle', text: this.state.data.title }),
+          div(
+            {
+              className: 'preview-shell__actions',
+              id: 'previewActions',
+              style: { display: 'flex', gap: '8px' },
+            },
+            button({
               id: 'btnRefreshPreview',
               type: 'button',
               className: 'btn btn--ghost',
               text: '刷新',
             }),
-            d.button({
+            button({
               id: 'btnClosePreview',
               type: 'button',
               className: 'btn btn--ghost',
               text: '关闭',
-            }),
-          ]),
-        ]),
-        d.iframe({
+            })
+          )
+        ),
+        iframe({
           id: 'previewFrame',
           className: 'preview-shell__frame',
           title: '原型预览',
-        }),
-      ]);
+        })
+      );
 
-      const [ref, root] = d.get();
+      const [ref, root] = get();
       this.state.ref = ref;
       host.appendChild(root);
     }
