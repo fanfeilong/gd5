@@ -37,8 +37,9 @@ skills/blocks ──► product（积木数据）
 ## 产品
 
 - `BootComponent` → loading 槽
-- `EditorComponent` → home：编辑器壳用 `D` 构建，画布数据在 `state` + store
+- `EditorComponent` → home：壳 / 面板 / 画布节点用 `D` 构建，画布数据在 `state` + store
 - `PreviewComponent` → `isModal: true`，`navigate('preview', { doc })` / `goBack()`
+- 产品层优先 `D`，不用 `innerHTML` / 零散 `createElement` 拼 UI（相对 JSX：无编译，靠 `key`+多 class 把 DSL 用满）
 
 ## 目录
 

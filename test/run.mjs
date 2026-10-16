@@ -210,8 +210,12 @@ section('engine: D / Element');
         tagName: tag.toUpperCase(),
         children: [],
         style: {},
+        dataset: {},
         appendChild(child) {
           this.children.push(child);
+        },
+        setAttribute(name, value) {
+          this[name] = value;
         },
       };
       return el;
@@ -226,6 +230,29 @@ section('engine: D / Element');
   assert(root.children.length === 1, 'D.childList appends child');
   assert(root.children[0].innerText === 'hi', 'Element text attribute sets innerText');
   assert(Element === Element, 'Element export available');
+
+  const d2 = new D();
+  d2.button({
+    key: 'save',
+    className: 'btn btn--primary',
+    type: 'button',
+    text: '保存',
+    dataset: { action: 'save' },
+    style: { marginTop: '8px' },
+  });
+  // 同构建再写一个同 class 前缀，不应 throw/alert
+  d2.button({
+    key: 'cancel',
+    className: 'btn btn--ghost',
+    type: 'button',
+    text: '取消',
+  });
+  const [ref2] = d2.get();
+  assert(ref2.key.save && ref2.key.cancel, 'D key indexes list items');
+  assert(ref2.key.save.className === 'btn btn--primary', 'multi className allowed');
+  assert(ref2.key.save.dataset.action === 'save', 'dataset assigned');
+  assert(ref2.key.save.style.marginTop === '8px', 'style object assigned');
+  assert(typeof d2.el === 'function', 'd.el helper exists');
 }
 
 section('product: store + export');
