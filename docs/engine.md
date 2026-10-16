@@ -17,6 +17,8 @@ import {
 
 ## 生命周期
 
+页面（ComponentRender）：
+
 ```
 navigate(name)
   → componentDidMount(params)
@@ -27,8 +29,20 @@ navigate(name)
 goBack()
   → componentDidUnMount()
   → display:none
-  → 显示上一页（非 modal 时）
 ```
+
+页内组合（同一套 Component，不经导航栈）：
+
+```
+parent.render()  // 建 #host-xxx
+child.mount(host | 'host-id', params)
+  → componentDidMount → render → AttachEvents
+
+child.refresh() / setData()
+child.unmount() → DidUnMount
+```
+
+宿主可用 `display: contents`，让子组件根节点直接参与父级布局。
 
 ## 刷新（Mount 之后）
 

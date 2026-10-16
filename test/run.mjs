@@ -44,10 +44,10 @@ section('layout: product vs engine');
     'src/product/components/EditorComponent.js',
     'src/product/components/PreviewComponent.js',
     'src/product/components/BootComponent.js',
-    'src/product/views/ToolbarView.js',
-    'src/product/views/PaletteView.js',
-    'src/product/views/ArtboardView.js',
-    'src/product/views/InspectorView.js',
+    'src/product/components/ToolbarComponent.js',
+    'src/product/components/PaletteComponent.js',
+    'src/product/components/ArtboardComponent.js',
+    'src/product/components/InspectorComponent.js',
     'src/product/nodes/index.js',
     'src/product/nodes/button.js',
     'docs/architecture.md',
@@ -56,6 +56,7 @@ section('layout: product vs engine');
     assert(existsSync(join(root, path)), `${path} exists`);
   }
   assert(!existsSync(join(root, 'src/js')), 'legacy src/js removed');
+  assert(!existsSync(join(root, 'src/product/views')), 'ad-hoc views/ removed');
   assert(!existsSync(join(root, 'index.py')), 'Flask entry removed');
 }
 
@@ -207,6 +208,42 @@ section('engine: setData / refresh');
 
   page.setData({ label: 'c' }, { refresh: false });
   assert(page.state.data.label === 'c' && page.renderCount === 3, 'setData can skip refresh');
+}
+
+section('engine: Component.mount composition');
+{
+  class Child extends Component {
+    constructor() {
+      super();
+      this.mounts = 0;
+      this.unmounts = 0;
+      this.renders = 0;
+      this.attaches = 0;
+      this.state = { data: { n: 0 }, ref: {} };
+    }
+    async componentDidMount() {
+      this.mounts += 1;
+    }
+    componentDidUnMount() {
+      this.unmounts += 1;
+    }
+    componentDidAttachEvents() {
+      this.attaches += 1;
+    }
+    render() {
+      this.renders += 1;
+    }
+  }
+
+  const child = new Child();
+  const hostEl = { id: 'host-x' };
+  await child.mount(hostEl);
+  assert(child.isMounted() && child.host() === hostEl, 'mount sets host');
+  assert(child.mounts === 1 && child.renders === 1 && child.attaches === 1, 'mount runs full lifecycle');
+  child.setData({ n: 1 });
+  assert(child.renders === 2 && child.attaches === 1, 'setData refresh skips AttachEvents');
+  child.unmount();
+  assert(!child.isMounted() && child.unmounts === 1, 'unmount runs DidUnMount');
 }
 
 section('engine: D / Element');
@@ -361,7 +398,8 @@ section('product: nodes registry');
 
   const editorSrc = readFileSync(join(root, 'src/product/components/EditorComponent.js'), 'utf8');
   assert(!/switch\s*\(\s*node\.kind/.test(editorSrc), 'EditorComponent has no kind switch');
-  assert(editorSrc.includes('ToolbarView') && editorSrc.includes('PaletteView'), 'Editor composes views');
+  assert(editorSrc.includes('ToolbarComponent') && editorSrc.includes('.mount('), 'Editor mounts child Components');
+  assert(!editorSrc.includes('ToolbarView'), 'Editor no longer uses View pattern');
 }
 
 section('skills blocks');

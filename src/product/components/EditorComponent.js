@@ -3,14 +3,14 @@ import { createStore } from '../lib/store.js';
 import { downloadHtml } from '../lib/export.js';
 import { loadSkillBlocks } from '../lib/skills.js';
 import { buildStarterDoc } from '../lib/starter.js';
-import { ToolbarView } from '../views/ToolbarView.js';
-import { PaletteView } from '../views/PaletteView.js';
-import { ArtboardView } from '../views/ArtboardView.js';
-import { InspectorView } from '../views/InspectorView.js';
+import { ToolbarComponent } from './ToolbarComponent.js';
+import { PaletteComponent } from './PaletteComponent.js';
+import { ArtboardComponent } from './ArtboardComponent.js';
+import { InspectorComponent } from './InspectorComponent.js';
 
 /**
- * 编辑器页（产品）— 只做组合：挂载子视图、订阅 store、转发快捷键。
- * 具体 UI / 节点 kind 分支在 views/ 与 nodes/。
+ * 编辑器页 — 组合子 Component：先画宿主槽，再 mount 子组件。
+ * 子模块同样走 DidMount / render / AttachEvents / refresh / unmount。
  */
 export class EditorComponent extends Component {
   constructor(navigator, logger) {
@@ -23,23 +23,21 @@ export class EditorComponent extends Component {
     this._unsub = null;
     this.state = { data: { ready: false }, ref: {} };
 
-    const blockApi = {
+    const deps = {
       store: this.store,
       getBlocks: () => this.blocks,
       getBlock: (id) => this.blocksById[id],
-    };
-
-    this.toolbar = new ToolbarView({
-      store: this.store,
-      navigator: this.navigator,
       onExport: () => {
         const { doc } = this.store.getState();
         downloadHtml(doc, `${slugify(doc.meta.name)}.html`);
       },
-    });
-    this.palette = new PaletteView(blockApi);
-    this.artboard = new ArtboardView(blockApi);
-    this.inspector = new InspectorView({ store: this.store });
+    };
+
+    this.toolbar = new ToolbarComponent(navigator, logger, deps);
+    this.palette = new PaletteComponent(navigator, logger, deps);
+    this.artboard = new ArtboardComponent(navigator, logger, deps);
+    this.inspector = new InspectorComponent(navigator, logger, deps);
+    this.children = [this.toolbar, this.palette, this.artboard, this.inspector];
   }
 
   async componentDidMount() {
@@ -52,7 +50,8 @@ export class EditorComponent extends Component {
   }
 
   refresh() {
-    this._paint();
+    this.artboard.refresh();
+    this.inspector.refresh();
   }
 
   componentDidUnMount() {
@@ -64,16 +63,14 @@ export class EditorComponent extends Component {
       window.removeEventListener('keydown', this._onKey);
       this._onKey = null;
     }
+    this.children.forEach((child) => child.unmount());
     D.clear(document.getElementById('editor'));
     this.state.ref = {};
   }
 
   componentDidAttachEvents() {
-    const ref = this.state.ref;
-    this.toolbar.attach(ref);
-    this.palette.attach(ref);
-    this.artboard.attach(ref);
-    this.inspector.attach(ref);
+    // 宿主已在 render 中建好 → 挂载子 Component
+    void this._mountChildren();
 
     this._onKey = (event) => {
       const meta = event.metaKey || event.ctrlKey;
@@ -99,35 +96,35 @@ export class EditorComponent extends Component {
       }
     };
     window.addEventListener('keydown', this._onKey);
+  }
 
-    this._unsub = this.store.subscribe(() => this._paint());
-    this._paint();
+  async _mountChildren() {
+    await this.toolbar.mount('host-toolbar');
+    await this.palette.mount('host-palette');
+    await this.artboard.mount('host-artboard');
+    await this.inspector.mount('host-inspector');
+
+    this._unsub = this.store.subscribe(() => this.refresh());
+    this.refresh();
   }
 
   render() {
     const host = document.getElementById('editor');
     D.clear(host);
 
-    const ui = bind();
-    const { div, get } = ui;
-
+    const { div, get } = bind();
+    // display:contents 宿主：子 Component 根节点直接参与 .app 网格
     div(
       { className: 'app', id: 'appRoot' },
-      this.toolbar.shell(ui),
-      this.palette.shell(ui),
-      this.artboard.shell(ui),
-      this.inspector.shell(ui)
+      div({ id: 'host-toolbar', className: 'component-host' }),
+      div({ id: 'host-palette', className: 'component-host' }),
+      div({ id: 'host-artboard', className: 'component-host' }),
+      div({ id: 'host-inspector', className: 'component-host' })
     );
 
     const [ref, root] = get();
     this.state.ref = ref;
-    this.palette.paintList(ref.id.paletteList);
     host.appendChild(root);
-  }
-
-  _paint() {
-    this.artboard.paint(this.state.ref);
-    this.inspector.paint(this.state.ref);
   }
 }
 

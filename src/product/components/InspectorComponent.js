@@ -1,52 +1,28 @@
-import { D, bind } from '../../engine/index.js';
+import { Component, D, bind } from '../../engine/index.js';
 import { inspectorModel } from '../nodes/index.js';
 
 /**
- * 右侧属性面板：按 inspectorModel 声明式渲染，不做 kind 分支。
+ * 属性面板组件：按 inspectorModel 渲染，不做 kind 分支。
  */
-export class InspectorView {
-  constructor({ store }) {
+export class InspectorComponent extends Component {
+  constructor(navigator, logger, { store } = {}) {
+    super();
+    this.navigator = navigator;
+    this.logger = logger;
     this.store = store;
+    this.state = { data: {}, ref: {} };
   }
 
-  shell(ui) {
-    const { aside, h2, div, label, span, input } = ui;
-    return aside(
-      { className: 'inspector', id: 'inspector' },
-      h2({ className: 'panel-title', id: 'inspectorTitle', text: '属性' }),
-      div({ className: 'inspector__body', id: 'inspectorBody' }),
-      div(
-        { className: 'inspector__meta', id: 'inspectorMeta' },
-        label(
-          { className: 'field', id: 'fieldWidth' },
-          span({ id: 'labelWidth', text: '画布宽度' }),
-          input({
-            id: 'boardWidth',
-            type: 'number',
-            min: 320,
-            max: 1440,
-            step: 10,
-            value: 390,
-          })
-        ),
-        label(
-          { className: 'field', id: 'fieldHeight' },
-          span({ id: 'labelHeight', text: '画布高度' }),
-          input({
-            id: 'boardHeight',
-            type: 'number',
-            min: 480,
-            max: 2000,
-            step: 10,
-            value: 844,
-          })
-        )
-      )
-    );
+  async componentDidMount() {}
+
+  componentDidUnMount() {
+    const host = this.host();
+    if (host) D.clear(host);
+    this.state.ref = {};
   }
 
-  attach(ref) {
-    const ids = ref.id || {};
+  componentDidAttachEvents() {
+    const ids = this.state.ref.id || {};
     ids.boardWidth?.addEventListener('change', () => {
       this.store.setMeta({ width: Number(ids.boardWidth.value) || 390 });
     });
@@ -55,8 +31,68 @@ export class InspectorView {
     });
   }
 
-  paint(ref) {
-    const body = ref.id?.inspectorBody;
+  render() {
+    const host = this.host();
+    if (!host) return;
+
+    if (!this.state.ref.id?.inspectorBody) {
+      D.clear(host);
+      const { aside, h2, div, label, span, input, get } = bind();
+      aside(
+        { className: 'inspector', id: 'inspector' },
+        h2({ className: 'panel-title', id: 'inspectorTitle', text: '属性' }),
+        div({ className: 'inspector__body', id: 'inspectorBody' }),
+        div(
+          { className: 'inspector__meta', id: 'inspectorMeta' },
+          label(
+            { className: 'field', id: 'fieldWidth' },
+            span({ id: 'labelWidth', text: '画布宽度' }),
+            input({
+              id: 'boardWidth',
+              type: 'number',
+              min: 320,
+              max: 1440,
+              step: 10,
+              value: 390,
+            })
+          ),
+          label(
+            { className: 'field', id: 'fieldHeight' },
+            span({ id: 'labelHeight', text: '画布高度' }),
+            input({
+              id: 'boardHeight',
+              type: 'number',
+              min: 480,
+              max: 2000,
+              step: 10,
+              value: 844,
+            })
+          )
+        )
+      );
+      const [ref, root] = get();
+      this.state.ref = ref;
+      host.appendChild(root);
+    }
+
+    this._syncMeta();
+    this._paintBody();
+  }
+
+  refresh() {
+    this._syncMeta();
+    this._paintBody();
+  }
+
+  _syncMeta() {
+    const { doc } = this.store.getState();
+    const ids = this.state.ref.id || {};
+    if (ids.boardWidth) ids.boardWidth.value = doc.meta.width;
+    if (ids.boardHeight) ids.boardHeight.value = doc.meta.height;
+  }
+
+  _paintBody() {
+    const body = this.state.ref.id?.inspectorBody;
     if (!body) return;
     D.clear(body);
 
