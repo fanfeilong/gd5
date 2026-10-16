@@ -9,19 +9,21 @@
  * 注册可简写：默认 id=name、isMount=false；页面构造自动获得 navigator/logger。
  */
 
-import { ComponentRender, LogEnv } from '../engine/index.js';
+import { ComponentRender, LogProvider } from '../engine/index.js';
 import { BootComponent } from './components/BootComponent.js';
 import { EditorComponent } from './components/EditorComponent.js';
 import { PreviewComponent } from './components/PreviewComponent.js';
 
-const render = new ComponentRender({
-  logEnv: LogEnv.chrome,
-  getUserInfo: () => ({
+const logProvider = new LogProvider({
+  level: 'info',
+  sink: 'console',
+  context: {
     machId: 'browser',
     userId: 'protolive',
-    token: '',
-  }),
+  },
 });
+
+const render = new ComponentRender({ logProvider });
 
 render.init(
   {

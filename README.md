@@ -17,7 +17,7 @@ A minimal **real-DOM** component runtime for the browser — no virtual DOM, no 
 
 | Goal | Approach |
 |------|----------|
-| Small surface | `Component`, `ComponentRender`, `D` / `bind`, `Log`, style adoption |
+| Small surface | `Component`, `ComponentRender`, `D` / `bind`, `LogProvider`, style adoption |
 | Real DOM | Mutate elements directly; skip VDOM diff overhead |
 | Zero build | `import` from `src/engine/index.js` / `src/ui/index.js` over HTTP |
 | One lifecycle | Pages and nested UI both use `mount` / `unmount` |
@@ -38,7 +38,7 @@ There is **no package build step** and no required `dist/`. Use it like a module
     Component,
     ComponentRender,
     bind,
-    LogEnv,
+    LogProvider,
   } from './src/engine/index.js';
 
   // your app…
@@ -147,11 +147,17 @@ export class HomePage extends Component {
 - **Children:** parent forwards them when constructing (still plain `new Child(deps)`).
 
 ```js
-import { ComponentRender, LogEnv } from './src/engine/index.js';
+import { ComponentRender, LogProvider } from './src/engine/index.js';
 import { HomePage } from './HomePage.js';
 import { SettingsPage } from './SettingsPage.js';
 
-const app = new ComponentRender({ logEnv: LogEnv.chrome });
+const app = new ComponentRender({
+  logProvider: new LogProvider({
+    level: 'info',
+    sink: 'console',
+    context: { machId: 'local', userId: 'demo' },
+  }),
+});
 app.init(
   { loading: 'home', home: 'home' },
   {
