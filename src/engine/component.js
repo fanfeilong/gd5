@@ -6,10 +6,44 @@
  *   data: {}, // 视图展示所依赖的数据
  *   ref: {}   // 视图 HTML Element 的索引
  * };
+ *
+ * 刷新约定（Mount 之后）：
+ * - setData(patch) 合并 this.state.data，并默认调用 refresh()
+ * - refresh() 默认再跑 render()，用于把 data 绑回已有 ref
+ * - AttachEvents 仍只在首次 mount 时调用；因此 render() 在 refresh
+ *   路径上应尽量「有壳则只绑数据」，不要 D.clear 毁掉已绑事件的节点
+ * - 若某页必须整页重建 DOM，请 override refresh() 并自行处理事件
  */
 export class Component {
   constructor() {
     // subclass sets this.state
+  }
+
+  /**
+   * 合并视图数据并刷新。
+   * @param {object} patch
+   * @param {{ refresh?: boolean }} [options] refresh 默认 true
+   */
+  setData(patch = {}, options = {}) {
+    if (!this.state) {
+      this.state = { data: {}, ref: {} };
+    }
+    if (!this.state.data || typeof this.state.data !== 'object') {
+      this.state.data = {};
+    }
+    Object.assign(this.state.data, patch);
+    if (options.refresh !== false) {
+      this.refresh();
+    }
+    return this.state.data;
+  }
+
+  /**
+   * Mount 之后的刷新入口：默认再次 render()。
+   * 不重新 AttachEvents / 不走 UnMount。
+   */
+  refresh() {
+    this.render();
   }
 
   /** virtual method */
