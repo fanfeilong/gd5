@@ -77,10 +77,18 @@ section('layout: product vs engine');
     'src/ui/tabs.js',
     'src/ui/table.js',
     'src/ui/CommandPalette.js',
+    'src/ui/input-number.js',
+    'src/ui/rate.js',
+    'src/ui/cascader.js',
+    'src/ui/upload.js',
+    'src/ui/menu.js',
+    'src/ui/layout.js',
+    'src/ui/Notification.js',
     'src/ui/css/ui.css',
     'src/ui/css/tokens.css',
     'src/ui/css/control.css',
     'src/ui/css/extra.css',
+    'src/ui/css/antd-gap.css',
     'examples/ui-gallery.html',
     'examples/ui-gallery.js',
     'src/engine/styles.js',
@@ -707,6 +715,10 @@ section('ui kit');
     'Combobox', 'TagInput', 'MultiSelect', 'Transfer', 'Slider', 'ColorWell', 'DatePicker',
     'Timeline', 'ChatBubble', 'Carousel', 'BentoGrid', 'Marquee', 'Fab', 'Lightbox',
     'PieChart', 'DonutChart', 'SearchInput', 'SignInForm', 'Truncate', 'Splitter',
+    'InputNumber', 'Rate', 'Cascader', 'Upload', 'Mentions', 'TreeSelect', 'Form', 'FormItem',
+    'List', 'Descriptions', 'Statistic', 'Calendar', 'Image', 'Result', 'Popconfirm',
+    'Notification', 'Watermark', 'Flex', 'Row', 'Col', 'Layout', 'Menu', 'Affix', 'Anchor',
+    'Icon', 'ConfigProvider',
   ];
   for (const name of namedExports) {
     assert(typeof ui[name] === 'function', `export ${name}`);
@@ -714,6 +726,7 @@ section('ui kit');
 
   const docs = readFileSync(join(root, 'docs/ui.md'), 'utf8');
   assert(docs.includes('namethatui.com') || docs.includes('NameThatUI'), 'docs reference NameThatUI');
+  assert(docs.includes('Ant Design') || docs.includes('ant.design'), 'docs reference Ant Design');
 
   const listeners = [];
   globalThis.document = {
@@ -788,6 +801,16 @@ section('ui kit');
 
   const bar = ProgressBar({ percent: 50, showInfo: true });
   assert(bar.e.className.includes('gd-progress'), 'ProgressBar root class');
+
+  const rate = ui.Rate({ value: 3, onChange: () => {} });
+  assert(rate.e.className.includes('gd-rate'), 'Rate root class');
+  const inputNumber = ui.InputNumber({ value: 1, onChange: () => {} });
+  assert(inputNumber.e.className.includes('gd-input-number'), 'InputNumber root class');
+  const menu = ui.Menu({
+    items: [{ key: '1', label: 'One' }],
+    selectedKey: '1',
+  });
+  assert(menu.e.className.includes('gd-menu'), 'Menu root class');
 }
 
 section('skills blocks');

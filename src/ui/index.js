@@ -1,9 +1,9 @@
 /**
  * gd5 UI — component library on top of the engine.
- * Catalog aligned with NameThatUI web elements (https://namethatui.com/).
+ * Catalog: NameThatUI web elements + Ant Design component coverage.
  *
  * Primitives return real-DOM Elements for ensureShell / bind trees.
- * Overlay widgets (Modal, Drawer, Toast, Lightbox, CommandPalette) are Components.
+ * Overlay widgets are Components (portal mount).
  *
  *   import { loadUi, Button, Input, Modal } from '../ui/index.js';
  *   await loadUi();
@@ -13,10 +13,13 @@ export { loadUi, ensureUiStyles, cx } from './util.js';
 
 export { Button } from './button.js';
 export { Input, TextArea, Select, Field } from './input.js';
+export { InputNumber } from './input-number.js';
 export { Checkbox, Switch, Badge } from './control.js';
 export { Radio, RadioGroup } from './radio.js';
+export { Rate } from './rate.js';
 export { Chip, Pill } from './chip.js';
 export { Space, Divider } from './space.js';
+export { Flex, Row, Col } from './flex.js';
 export { Title, Text } from './typography.js';
 export { Truncate, PasswordInput, OrDivider, SignInForm } from './text-extra.js';
 export { Card } from './card.js';
@@ -60,7 +63,15 @@ export {
   DatePicker,
   TimeField,
 } from './form-extra.js';
+export { Cascader } from './cascader.js';
+export { Upload, Mentions } from './upload.js';
+export { TreeSelect } from './tree-select.js';
+export { Form, FormItem } from './form.js';
 export { Table, DataTable } from './table.js';
+export { List, ListItem, Descriptions, Statistic } from './list.js';
+export { Calendar } from './calendar.js';
+export { Image } from './image.js';
+export { Result, Popconfirm } from './result.js';
 export { Timeline } from './timeline.js';
 export { ChatBubble } from './chat.js';
 export { Carousel } from './carousel.js';
@@ -76,6 +87,18 @@ export {
   Splitter,
   SplitView,
 } from './layout-extra.js';
+export {
+  Layout,
+  LayoutHeader,
+  LayoutSider,
+  LayoutContent,
+  LayoutFooter,
+} from './layout.js';
+export { Menu } from './menu.js';
+export { Affix, Anchor } from './affix.js';
+export { Icon } from './icon.js';
+export { ConfigProvider } from './config.js';
+export { Watermark } from './watermark.js';
 export { Fab, ChatLauncher, BackToTop } from './float.js';
 export { PieChart, DonutChart } from './chart.js';
 export { Tree, OutlineView, DisclosureTriangle } from './tree.js';
@@ -84,5 +107,6 @@ export { DragHandle, DropZone } from './drag.js';
 export { Modal } from './Modal.js';
 export { Drawer, Sheet } from './Drawer.js';
 export { Toast } from './Toast.js';
+export { Notification, messageApi } from './Notification.js';
 export { Lightbox } from './Lightbox.js';
 export { CommandPalette } from './CommandPalette.js';
