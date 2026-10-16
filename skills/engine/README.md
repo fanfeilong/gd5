@@ -31,15 +31,32 @@ this.setData({ message: 'updated' });
 打开：`navigator.navigate('name', params)`；关闭：`navigator.goBack()`。  
 底层页不会被隐藏。
 
-## Skill：实 DOM 组合
+## Skill：实 DOM 组合（优先 D，少手写 DOM）
 
 ```js
 const d = new D();
 d.div({ className: 'box', id: 'box' }).childList([
-  d.div({ className: 'title', text: 'Hello' }),
+  d.div({ className: 'title panel-title', text: 'Hello' }), // 多 class OK
 ]);
 const [ref, root] = d.get();
 host.appendChild(root);
 ```
 
-同一次 `D` 构建中 `className` / `id` 不可重复。
+列表：
+
+```js
+items.forEach((item) => {
+  const row = new D();
+  row.button({
+    key: item.id,
+    className: 'palette-item',
+    dataset: { skillId: item.id },
+    text: item.label,
+  });
+  host.appendChild(row.get()[1]);
+});
+```
+
+- 用 `key` / `id` 做索引，`className` 只表达样式
+- 先建根节点再 `childList`，避免子节点抢占 `D.root`
+- 产品里避免 `innerHTML` / 零散 `createElement`（导出下载链等边界除外）

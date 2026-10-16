@@ -2,10 +2,7 @@ import { Component, D } from '../../engine/index.js';
 import { documentToHtml } from '../lib/export.js';
 
 /**
- * Live Preview（产品）— 模态页，通过 navigator.navigate('preview', { doc }) 打开，
- * goBack() 关闭。依赖引擎的 isModal 透底行为。
- *
- * render() 做成可刷新：首次建壳，之后只把 state.data 绑到 ref（配合 setData/refresh）。
+ * Live Preview（产品）— 模态页；壳层用 D，refresh 只绑 data。
  */
 export class PreviewComponent extends Component {
   constructor(navigator, logger) {
@@ -55,7 +52,6 @@ export class PreviewComponent extends Component {
     if (refreshBtn) {
       refreshBtn.addEventListener('click', () => {
         const name = this.state.data.doc?.meta?.name || 'Untitled';
-        // 演示 Mount 后 setData → refresh，不重走 navigate / AttachEvents
         this.setData({
           title: `预览 · ${name} · ${new Date().toLocaleTimeString()}`,
         });
@@ -79,17 +75,21 @@ export class PreviewComponent extends Component {
       d.div({ className: 'preview-shell', id: 'previewShell' }).childList([
         d.div({ className: 'preview-shell__bar', id: 'previewBar' }).childList([
           d.span({ id: 'previewTitle', text: this.state.data.title }),
-          d.div({ className: 'previewActions', id: 'previewActions' }).childList([
+          d.div({
+            className: 'preview-shell__actions',
+            id: 'previewActions',
+            style: { display: 'flex', gap: '8px' },
+          }).childList([
             d.button({
               id: 'btnRefreshPreview',
               type: 'button',
-              className: 'btnRefreshPreview',
+              className: 'btn btn--ghost',
               text: '刷新',
             }),
             d.button({
               id: 'btnClosePreview',
               type: 'button',
-              className: 'btnClosePreview',
+              className: 'btn btn--ghost',
               text: '关闭',
             }),
           ]),
@@ -102,10 +102,6 @@ export class PreviewComponent extends Component {
       ]);
 
       const [ref, root] = d.get();
-      ref.id.btnRefreshPreview.className = 'btn btn--ghost';
-      ref.id.btnClosePreview.className = 'btn btn--ghost';
-      ref.id.previewActions.style.display = 'flex';
-      ref.id.previewActions.style.gap = '8px';
       this.state.ref = ref;
       host.appendChild(root);
     }
