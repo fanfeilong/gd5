@@ -79,6 +79,37 @@ import {
   DropZone,
   SignInForm,
   Fab,
+  InputNumber,
+  Rate,
+  Cascader,
+  Upload,
+  Mentions,
+  TreeSelect,
+  Form,
+  FormItem,
+  List,
+  ListItem,
+  Descriptions,
+  Statistic,
+  Calendar,
+  Image,
+  Result,
+  Popconfirm,
+  Watermark,
+  Flex,
+  Row,
+  Col,
+  Layout,
+  LayoutHeader,
+  LayoutSider,
+  LayoutContent,
+  LayoutFooter,
+  Menu,
+  Affix,
+  Anchor,
+  Icon,
+  ConfigProvider,
+  Notification,
   Modal,
   Drawer,
   Toast,
@@ -115,12 +146,27 @@ class GalleryPage extends Component {
       password: '',
       pwVisible: false,
       radio: 'a',
+      number: 3,
+      rate: 4,
+      cascader: ['zhejiang', 'hangzhou'],
+      cascaderOpen: false,
+      files: [],
+      mentions: '',
+      mentionsOpen: false,
+      treeSelect: 'leaf1',
+      treeSelectOpen: false,
+      calendar: new Date(),
+      menuKey: '1',
+      menuOpen: ['sub'],
+      popconfirmOpen: false,
+      anchorKey: 'antd',
     };
     this.modal = new Modal({});
     this.drawer = new Drawer({});
     this.toast = new Toast({});
     this.lightbox = new Lightbox({});
     this.cmd = new CommandPalette({});
+    this.notification = new Notification({});
   }
 
   async componentDidMount() {
@@ -130,6 +176,7 @@ class GalleryPage extends Component {
     await this.toast.mount();
     await this.lightbox.mount();
     await this.cmd.mount();
+    await this.notification.mount();
     this.cmd.setData({
       items: [
         { id: 'save', label: 'Save document', onSelect: () => this.toast.show({ message: 'Saved', type: 'success' }) },
@@ -615,6 +662,220 @@ class GalleryPage extends Component {
                   text: 'Menu',
                   onClick: () => this.setData({ overflowOpen: !d.overflowOpen }),
                 })
+              )
+            )
+          ),
+
+          this.section(
+            'Ant Design gap fill',
+            Space(
+              { direction: 'vertical', size: 'md' },
+              Flex(
+                { gap: 12, align: 'center', wrap: true },
+                Icon({ type: 'setting', size: 'lg' }),
+                Icon({ type: 'star' }),
+                InputNumber({
+                  value: d.number,
+                  min: 0,
+                  max: 10,
+                  onChange: (number) => this.setData({ number }),
+                }),
+                Rate({ value: d.rate, onChange: (rate) => this.setData({ rate }) }),
+                Statistic({ title: 'Active users', value: 112893, suffix: '' })
+              ),
+              Cascader({
+                value: d.cascader,
+                open: d.cascaderOpen,
+                onOpenChange: (cascaderOpen) => this.setData({ cascaderOpen }),
+                onChange: (cascader) => this.setData({ cascader }),
+                options: [
+                  {
+                    value: 'zhejiang',
+                    label: 'Zhejiang',
+                    children: [
+                      { value: 'hangzhou', label: 'Hangzhou' },
+                      { value: 'ningbo', label: 'Ningbo' },
+                    ],
+                  },
+                  {
+                    value: 'jiangsu',
+                    label: 'Jiangsu',
+                    children: [{ value: 'nanjing', label: 'Nanjing' }],
+                  },
+                ],
+              }),
+              TreeSelect({
+                value: d.treeSelect,
+                open: d.treeSelectOpen,
+                onOpenChange: (treeSelectOpen) => this.setData({ treeSelectOpen }),
+                onChange: (treeSelect) => this.setData({ treeSelect }),
+                treeData: [
+                  {
+                    value: 'parent',
+                    title: 'Parent',
+                    children: [
+                      { value: 'leaf1', title: 'Leaf 1' },
+                      { value: 'leaf2', title: 'Leaf 2' },
+                    ],
+                  },
+                ],
+              }),
+              Upload({
+                fileList: d.files,
+                onChange: ({ fileList }) => this.setData({ files: fileList }),
+              }),
+              Mentions({
+                value: d.mentions,
+                open: d.mentionsOpen,
+                options: ['alice', 'bob', 'carol'],
+                onChange: (mentions) => this.setData({ mentions }),
+                onOpenChange: (mentionsOpen) => this.setData({ mentionsOpen }),
+              }),
+              Row(
+                { gutter: 16 },
+                Col({ span: 12 }, Calendar({
+                  value: d.calendar,
+                  onChange: (calendar) => this.setData({ calendar }),
+                })),
+                Col(
+                  { span: 12 },
+                  Space(
+                    { direction: 'vertical' },
+                    Image({
+                      src: 'https://picsum.photos/seed/gd5antd/240/140',
+                      width: 240,
+                      onPreview: ({ src, alt }) => this.lightbox.open({ src, alt }),
+                    }),
+                    Descriptions({
+                      title: 'User info',
+                      column: 1,
+                      items: [
+                        { label: 'Name', children: 'Jane' },
+                        { label: 'Role', children: 'Designer' },
+                      ],
+                    })
+                  )
+                )
+              ),
+              List({
+                header: Text({ text: 'List header' }),
+                dataSource: [
+                  { key: '1', title: 'Ant Design Title 1' },
+                  { key: '2', title: 'Ant Design Title 2' },
+                ],
+                renderItem: (item) =>
+                  ListItem(
+                    {
+                      actions: [
+                        Button({
+                          type: 'text',
+                          size: 'sm',
+                          text: 'Edit',
+                        }),
+                      ],
+                    },
+                    Text({ text: item.title })
+                  ),
+              }),
+              Menu({
+                mode: 'inline',
+                selectedKey: d.menuKey,
+                openKeys: d.menuOpen,
+                onOpenChange: (menuOpen) => this.setData({ menuOpen }),
+                onClick: ({ key }) => this.setData({ menuKey: key }),
+                items: [
+                  { key: '1', label: 'Option 1' },
+                  { key: '2', label: 'Option 2' },
+                  {
+                    key: 'sub',
+                    label: 'Submenu',
+                    children: [
+                      { key: '3', label: 'Option 3' },
+                      { key: '4', label: 'Option 4' },
+                    ],
+                  },
+                ],
+              }),
+              Layout(
+                { hasSider: true },
+                LayoutSider(
+                  { width: 140 },
+                  Text({ text: 'Sider' })
+                ),
+                Layout(
+                  {},
+                  LayoutHeader({}, Text({ text: 'Header' })),
+                  LayoutContent({}, Text({ text: 'Content' })),
+                  LayoutFooter({}, Text({ type: 'secondary', text: 'Footer' }))
+                )
+              ),
+              Affix(
+                { offsetTop: 8 },
+                Anchor({
+                  activeKey: d.anchorKey,
+                  onChange: (anchorKey) => this.setData({ anchorKey }),
+                  items: [
+                    { key: 'antd', title: 'Ant gap' },
+                    { key: 'overlays', title: 'Overlays' },
+                  ],
+                })
+              ),
+              Result({
+                status: 'success',
+                title: 'Purchase success',
+                subTitle: 'Order number 20260316001',
+                extra: Button({
+                  type: 'primary',
+                  text: 'Buy again',
+                  onClick: () =>
+                    this.notification.success({
+                      message: 'Ordered',
+                      description: 'Notification (antd-style top-right).',
+                    }),
+                }),
+              }),
+              Space(
+                {},
+                Popconfirm({
+                  open: d.popconfirmOpen,
+                  title: 'Delete this task?',
+                  onOpenChange: (popconfirmOpen) => this.setData({ popconfirmOpen }),
+                  onConfirm: () => this.toast.show({ message: 'Deleted', type: 'success' }),
+                },
+                  Button({
+                    type: 'danger',
+                    text: 'Popconfirm',
+                    onClick: () => this.setData({ popconfirmOpen: !d.popconfirmOpen }),
+                  })
+                ),
+                Button({
+                  type: 'default',
+                  text: 'Notification',
+                  onClick: () =>
+                    this.notification.info({
+                      message: 'Hello',
+                      description: 'Top-right notification stack.',
+                    }),
+                })
+              ),
+              Watermark(
+                { content: 'gd5' },
+                Form(
+                  {
+                    onSubmit: () =>
+                      this.toast.show({ message: 'Form submitted', type: 'success' }),
+                  },
+                  FormItem({
+                    label: 'Username',
+                    required: true,
+                    control: Input({ name: 'username', placeholder: 'Jane' }),
+                  }),
+                  Button({ type: 'primary', text: 'Submit', htmlType: 'submit' })
+                )
+              ),
+              ConfigProvider(
+                { theme: { token: { primary: '#e86a17' } } },
+                Text({ type: 'secondary', text: 'ConfigProvider wraps theme tokens on a subtree.' })
               )
             )
           ),
