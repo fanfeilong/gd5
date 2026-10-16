@@ -97,7 +97,10 @@ export class HomePage extends Component {
 
 ### 3. Wire navigation
 
-Pages receive `navigator` / `logger` **by default**. Nested panels stay plain `new Child(deps)` — no extra composition API. If a child needs navigation, the **page** passes a callback.
+**Same API everywhere:** after `super(deps)`, use `this.navigator` / `this.logger`.
+
+- **Pages:** `ComponentRender.init` puts them into `deps` for you.
+- **Children:** parent forwards them when constructing (still plain `new Child(deps)`).
 
 ```js
 import { ComponentRender, LogEnv } from './src/engine/index.js';
@@ -117,11 +120,15 @@ window.addEventListener('DOMContentLoaded', () => app.render());
 ```
 
 ```js
-// page (has this.navigator by default)
+// page — already has this.navigator
 this.toolbar = new ToolbarComponent({
+  navigator: this.navigator,
+  logger: this.logger,
   store: this.store,
-  onPreview: () => this.navigator.navigate('preview', { doc: this.store.getState().doc }),
 });
+
+// child — identical usage
+this.navigator.navigate('preview', { doc });
 ```
 
 ---
@@ -150,7 +157,7 @@ unmount / goBack
 4. Put DOM handlers in props: `onClick`, `onChange`, `onPointerDown`, … (or `events: { click: fn }`).
 5. Use `this.on(window, 'keydown', …)` only for non-tree targets.
 6. After mount, update with `setData` / `refresh` — do not re-`navigate` to refresh.
-7. Nest with `new Child({ …business deps })`; keep page-stack calls on the page (or pass callbacks).
+7. Nest with `new Child({ navigator: this.navigator, logger: this.logger, … })` so the child uses the same `this.navigator` API.
 
 ### Composition
 
@@ -273,7 +280,7 @@ MIT
 ### 开发者要点
 
 - 页面与页内子组件共用 `mount` / `unmount`
-- **页面**默认有 `this.navigator` / `this.logger`；**子组件**仍 `new Child(业务deps)`，导航用回调交给页面
+- **页面**由 `init` 注入 `navigator` / `logger`；**子组件**创建时父把这两项放进 deps，用法同为 `this.navigator`
 - 注册可简写：`home: HomePage`（默认 `id=name`）
 - UI：`ensureShell` + `bind`；事件写在 props（`onClick`…）；`window` 用 `this.on`
 - 样式：`static styles = new URL('./X.css', import.meta.url)`，与组件同目录
