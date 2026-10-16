@@ -22,17 +22,16 @@ export class EditorComponent extends Component {
     this._unsub = null;
     this.state.data.ready = false;
 
+    // 页面构造时已有 this.navigator / this.logger；下传给子组件后用法相同
     const panelDeps = {
+      navigator: this.navigator,
+      logger: this.logger,
       store: this.store,
       getBlocks: () => this.blocks,
       getBlock: (id) => this.blocksById[id],
       onExport: () => {
         const { doc } = this.store.getState();
         downloadHtml(doc, `${slugify(doc.meta.name)}.html`);
-      },
-      onPreview: () => {
-        const { doc } = this.store.getState();
-        this.navigator.navigate('preview', { doc });
       },
     };
 

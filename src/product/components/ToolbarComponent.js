@@ -2,7 +2,7 @@ import { Component } from '../../engine/index.js';
 
 /**
  * 顶栏：撤销 / 重做 / 预览 / 导出。
- * 不依赖 navigator；预览由父页面通过 onPreview 回调触发。
+ * super(deps) 后与页面相同：直接 this.navigator.navigate(…)。
  */
 export class ToolbarComponent extends Component {
   static styles = new URL('./ToolbarComponent.css', import.meta.url);
@@ -11,7 +11,6 @@ export class ToolbarComponent extends Component {
     super(deps);
     this.store = deps.store;
     this.onExport = deps.onExport;
-    this.onPreview = deps.onPreview;
   }
 
   render() {
@@ -46,7 +45,10 @@ export class ToolbarComponent extends Component {
               type: 'button',
               className: 'btn btn--secondary',
               text: '预览',
-              onClick: () => this.onPreview?.(),
+              onClick: () => {
+                const { doc } = this.store.getState();
+                this.navigator.navigate('preview', { doc });
+              },
             }),
             button({
               id: 'btnExport',

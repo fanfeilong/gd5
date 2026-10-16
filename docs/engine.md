@@ -78,12 +78,16 @@ export class ToolbarComponent extends Component {
 - `mount` 前会 `adoptStylesFor(this.constructor)`，相同 URL / 文本只注入一次
 - **全局**：`css/tokens.css` + `css/base.css`；**组件私有**旁挂 CSS
 
-### navigator / logger：页面默认有，子组件不必背
+### navigator / logger：同一套用法
 
-- **页面**：`ComponentRender.init` 注入 → `this.navigator` / `this.logger`
-- **子组件**：照旧 `new Child({ store, … })`，**没有**额外组合 API
-- 子组件若要跳转：父页面传回调（如 `onPreview`），页面里再 `this.navigator.navigate(…)`
-- 注册简写：`home: HomePage`；默认 `id = name`、`isMount = false`、`isModal = false`
+构造里 `super(deps)` 后，组件一律用 `this.navigator` / `this.logger`。
+
+| 谁创建 | 怎么带上 runtime |
+|------|------------------|
+| `ComponentRender.init` | 自动传入页面 |
+| 父组件 `new Child(deps)` | 父把 `navigator: this.navigator, logger: this.logger` 写进 deps |
+
+没有新的组合 API；子组件不会「另学一套」。
 
 ```js
 app.init({ loading: 'home', home: 'home' }, {
@@ -91,11 +95,15 @@ app.init({ loading: 'home', home: 'home' }, {
   preview: { type: PreviewPage, isModal: true },
 });
 
-// 页面内组合（与原来一样）
+// 页面
 this.toolbar = new Toolbar({
+  navigator: this.navigator,
+  logger: this.logger,
   store: this.store,
-  onPreview: () => this.navigator.navigate('preview', { doc }),
 });
+
+// Toolbar 内（与页面相同）
+this.navigator.navigate('preview', { doc });
 ```
 
 ### 推荐骨架

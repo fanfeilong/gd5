@@ -4,12 +4,12 @@
 
 ## Skill：新建组件（页面或页内）
 
-1. `extends Component`（已带 `state`；**页面**默认有 `this.navigator` / `this.logger`）
+1. `extends Component` + `super(deps)` → 用 `this.navigator`（页面由 init 注入；子组件由父写入 deps）
 2. 旁挂 **`MyPanel.css`**，声明 `static styles = new URL('./MyPanel.css', import.meta.url)`
 3. `render()` 用 **`ensureShell`** 建壳，不要手写 clear/bind/get/append
 4. **DOM 事件写在 props**：`onClick` / `onChange` / `onDragStart`…
 5. `window` 等非树内目标才用 `this.on`（可放在 `componentDidAttachEvents`）
-6. 子组件：`new Child({ store, onPreview })`（组合方式与原来一致；导航回调交给页面）
+6. 子组件：`new Child({ navigator: this.navigator, logger: this.logger, store })`
 7. `componentDidUnMount` 只清业务；**不必** `D.clear(host)`
 8. Mount 后改数据用 `setData` / `refresh`，不要重复 `navigate`
 
@@ -20,7 +20,6 @@ export class MyPanel extends Component {
   constructor(deps = {}) {
     super(deps);
     this.store = deps.store;
-    this.onGo = deps.onGo;
   }
 
   render() {
@@ -33,7 +32,7 @@ export class MyPanel extends Component {
             id: 'btn',
             type: 'button',
             text: 'Go',
-            onClick: () => this.onGo?.(),
+            onClick: () => this.navigator.navigate('next'),
           })
         );
       }
@@ -41,10 +40,11 @@ export class MyPanel extends Component {
   }
 }
 
-// 页面（有 this.navigator）
+// 页面
 this.panel = new MyPanel({
+  navigator: this.navigator,
+  logger: this.logger,
   store: this.store,
-  onGo: () => this.navigator.navigate('next'),
 });
 ```
 
