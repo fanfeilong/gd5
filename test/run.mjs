@@ -15,6 +15,7 @@ import {
   adoptStylesFor,
   adoptedStyleKeys,
   resetAdoptedStyles,
+  domEventType,
 } from '../src/engine/index.js';
 import { createStore, DEFAULT_DOC } from '../src/product/lib/store.js';
 import { documentToHtml, escapeHtml, renderNodeHtml } from '../src/product/lib/export.js';
@@ -363,7 +364,9 @@ section('product: component ergonomics');
   const toolbarSrc = readFileSync(join(root, 'src/product/components/ToolbarComponent.js'), 'utf8');
   const editorSrc = readFileSync(join(root, 'src/product/components/EditorComponent.js'), 'utf8');
   assert(toolbarSrc.includes('ensureShell'), 'Toolbar uses ensureShell');
-  assert(toolbarSrc.includes('onId'), 'Toolbar uses onId');
+  assert(toolbarSrc.includes('onClick'), 'Toolbar uses declarative onClick');
+  assert(!toolbarSrc.includes('onId'), 'Toolbar no longer uses onId AttachEvents');
+  assert(!toolbarSrc.includes('componentDidAttachEvents'), 'Toolbar has no AttachEvents split');
   assert(!toolbarSrc.includes('D.clear'), 'Toolbar does not hand-clear host');
   assert(editorSrc.includes('ensureShell') && editorSrc.includes("this.on(window"), 'Editor uses ensureShell + on(window)');
   assert(toolbarSrc.includes('static styles'), 'Toolbar declares static styles');
@@ -426,6 +429,65 @@ section('engine: adoptStyles');
   resetAdoptedStyles();
 }
 
+section('engine: declarative on* events');
+{
+  assert(domEventType('onClick') === 'click', 'onClick → click');
+  assert(domEventType('onPointerDown') === 'pointerdown', 'onPointerDown → pointerdown');
+  assert(domEventType('onDoubleClick') === 'dblclick', 'onDoubleClick → dblclick');
+  assert(domEventType('onclick') == null, 'lowercase onclick ignored');
+  assert(domEventType('className') == null, 'non-event prop ignored');
+
+  const listeners = [];
+  globalThis.document = {
+    createElement(tag) {
+      return {
+        tagName: tag.toUpperCase(),
+        children: [],
+        style: {},
+        dataset: {},
+        appendChild(child) {
+          this.children.push(child);
+        },
+        setAttribute(name, value) {
+          this[name] = value;
+        },
+        addEventListener(type, handler) {
+          listeners.push({ type, handler, el: this });
+        },
+      };
+    },
+    createTextNode(text) {
+      return { nodeType: 3, textContent: String(text) };
+    },
+  };
+
+  let clicks = 0;
+  const { button, get } = bind();
+  button({
+    id: 'go',
+    type: 'button',
+    text: 'Go',
+    onClick: () => {
+      clicks += 1;
+    },
+    events: {
+      dragstart: () => {
+        clicks += 10;
+      },
+    },
+  });
+  const [ref] = get();
+  assert(!!ref.id.go, 'button created with id');
+  assert(
+    listeners.some((l) => l.type === 'click') && listeners.some((l) => l.type === 'dragstart'),
+    'onClick and events bag register listeners'
+  );
+  listeners.find((l) => l.type === 'click').handler();
+  listeners.find((l) => l.type === 'dragstart').handler();
+  assert(clicks === 11, 'declarative handlers run');
+  assert(ref.id.go.onClick == null, 'onClick not assigned as DOM property');
+}
+
 section('engine: D / Element');
 {
   globalThis.document = {
@@ -441,6 +503,7 @@ section('engine: D / Element');
         setAttribute(name, value) {
           this[name] = value;
         },
+        addEventListener() {},
       };
       return el;
     },

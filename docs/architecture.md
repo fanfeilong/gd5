@@ -26,7 +26,7 @@ skills/blocks ──► product（积木数据）
 ## 引擎
 
 - `Component`：生命周期 + `setData` / `refresh` + **`mount` / `unmount`**（页面与页内同一套）
-- 降噪：`ensureShell` / `paint`、`on` / `onId`、`ids()`（少手写 clear/bind/监听清理）
+- 降噪：`ensureShell` / `paint`、`onClick` 声明式事件、`on(window)`、`ids()`
 - **样式**：`static styles = new URL('./X.css', import.meta.url)`，`mount` 时 `adoptStyles` 注入一次
 - `ComponentRender`：页面栈走 `component.mount(页槽)`，与子组件一致
 - `D` / `bind` / `map`：实 DOM 组合

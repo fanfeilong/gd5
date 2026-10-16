@@ -2,7 +2,7 @@ import { Component } from '../../engine/index.js';
 import { createNodeElement, syncNodeElement } from '../nodes/index.js';
 
 /**
- * 画布组件：放置 / 拖动 / 选中原型节点。
+ * 画布：放置 / 拖动 / 选中。拖放与指针事件在壳 props 上声明。
  */
 export class ArtboardComponent extends Component {
   static styles = new URL('./ArtboardComponent.css', import.meta.url);
@@ -20,34 +20,6 @@ export class ArtboardComponent extends Component {
     this._dragState = null;
   }
 
-  componentDidAttachEvents() {
-    const { artboard, canvas } = this.ids();
-    this.on(artboard, 'dragover', (event) => {
-      event.preventDefault();
-      artboard.classList.add('is-dragover');
-    });
-    this.on(artboard, 'dragleave', () => artboard.classList.remove('is-dragover'));
-    this.on(artboard, 'drop', (event) => {
-      event.preventDefault();
-      artboard.classList.remove('is-dragover');
-      const skillId = event.dataTransfer.getData('application/x-protolive-skill');
-      if (!skillId) return;
-      const block = this.getBlock?.(skillId);
-      if (!block) return;
-      const point = clientToEl(canvas, event.clientX, event.clientY);
-      this.store.addNode(block, {
-        x: Math.max(0, Math.round(point.x - block.defaults.width / 2)),
-        y: Math.max(0, Math.round(point.y - block.defaults.height / 2)),
-      });
-    });
-
-    this.on(canvas, 'pointerdown', (event) => this._onPointerDown(event, canvas));
-    this.on(canvas, 'pointermove', (event) => this._onPointerMove(event, canvas));
-    this.on(canvas, 'pointerup', () => {
-      this._dragState = null;
-    });
-  }
-
   render() {
     this.ensureShell(
       (ids) => ids.canvas,
@@ -57,8 +29,39 @@ export class ArtboardComponent extends Component {
           div(
             { className: 'artboard-wrap', id: 'artboardWrap' },
             div(
-              { className: 'artboard', id: 'artboard', dataset: { dropZone: 'true' } },
-              div({ className: 'canvas', id: 'canvas' })
+              {
+                className: 'artboard',
+                id: 'artboard',
+                dataset: { dropZone: 'true' },
+                onDragOver: (event) => {
+                  event.preventDefault();
+                  this.ids().artboard?.classList.add('is-dragover');
+                },
+                onDragLeave: () => this.ids().artboard?.classList.remove('is-dragover'),
+                onDrop: (event) => {
+                  event.preventDefault();
+                  const { artboard, canvas } = this.ids();
+                  artboard?.classList.remove('is-dragover');
+                  const skillId = event.dataTransfer.getData('application/x-protolive-skill');
+                  if (!skillId || !canvas) return;
+                  const block = this.getBlock?.(skillId);
+                  if (!block) return;
+                  const point = clientToEl(canvas, event.clientX, event.clientY);
+                  this.store.addNode(block, {
+                    x: Math.max(0, Math.round(point.x - block.defaults.width / 2)),
+                    y: Math.max(0, Math.round(point.y - block.defaults.height / 2)),
+                  });
+                },
+              },
+              div({
+                className: 'canvas',
+                id: 'canvas',
+                onPointerDown: (event) => this._onPointerDown(event),
+                onPointerMove: (event) => this._onPointerMove(event),
+                onPointerUp: () => {
+                  this._dragState = null;
+                },
+              })
             )
           )
         );
@@ -102,7 +105,9 @@ export class ArtboardComponent extends Component {
     });
   }
 
-  _onPointerDown(event, canvas) {
+  _onPointerDown(event) {
+    const canvas = this.ids().canvas;
+    if (!canvas) return;
     const target = event.target.closest('.prototype-node');
     if (!target) {
       this.store.select(null);
@@ -123,8 +128,10 @@ export class ArtboardComponent extends Component {
     target.setPointerCapture(event.pointerId);
   }
 
-  _onPointerMove(event, canvas) {
+  _onPointerMove(event) {
     if (!this._dragState) return;
+    const canvas = this.ids().canvas;
+    if (!canvas) return;
     const point = clientToEl(canvas, event.clientX, event.clientY);
     const x = Math.max(0, Math.round(point.x - this._dragState.offsetX));
     const y = Math.max(0, Math.round(point.y - this._dragState.offsetY));
