@@ -70,7 +70,7 @@ Live gallery: [`examples/ui-gallery.html`](../examples/ui-gallery.html)
 
 ```js
 const modal = new Modal({ navigator: this.navigator, logger: this.logger });
-await modal.mount(document.body);
+await modal.mount(); // portal under document.body (does not clear the page)
 modal.open({
   title: 'Delete?',
   content: 'This cannot be undone.',

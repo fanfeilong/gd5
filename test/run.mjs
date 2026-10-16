@@ -727,6 +727,10 @@ section('ui kit');
 
   const badge = Badge({ count: 12 }, Button({ text: 'Mail' }));
   assert(badge.e.className.includes('gd-badge'), 'Badge wraps child');
+
+  const modalSrc = readFileSync(join(root, 'src/ui/Modal.js'), 'utf8');
+  assert(modalSrc.includes('gd-modal-portal'), 'Modal mounts via portal (avoids clearing body)');
+  assert(modalSrc.includes('super.mount(this._portal'), 'Modal delegates mount to portal host');
 }
 
 section('skills blocks');

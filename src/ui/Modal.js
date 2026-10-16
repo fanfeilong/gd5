@@ -19,6 +19,34 @@ export class Modal extends Component {
     this.state.data.size = 'md';
     this._onOk = null;
     this._onCancel = null;
+    /** @type {HTMLElement|null} outer portal node (never clears document.body) */
+    this._portal = null;
+  }
+
+  /**
+   * Mount into a dedicated portal under `host` (default `document.body`).
+   * Avoids `paint` → `D.clear(body)` wiping the page.
+   * @param {HTMLElement|string} [host]
+   * @param {object} [params]
+   */
+  async mount(host = typeof document !== 'undefined' ? document.body : null, params = {}) {
+    const target =
+      typeof host === 'string' ? document.getElementById(host) : host || document.body;
+    if (!target) throw new Error('Modal.mount: host not found');
+
+    if (!this._portal) {
+      this._portal = document.createElement('div');
+      this._portal.className = 'gd-modal-portal';
+      target.appendChild(this._portal);
+    }
+    return super.mount(this._portal, params);
+  }
+
+  componentDidUnMount() {
+    if (this._portal?.parentNode) {
+      this._portal.parentNode.removeChild(this._portal);
+    }
+    this._portal = null;
   }
 
   async componentDidMount() {
