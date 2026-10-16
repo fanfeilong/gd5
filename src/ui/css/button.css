@@ -1,0 +1,106 @@
+.gd-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-sizing: border-box;
+  margin: 0;
+  border: 1px solid transparent;
+  border-radius: var(--gd-radius-sm);
+  font-family: var(--gd-font);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+  transition: background 160ms var(--gd-ease), border-color 160ms var(--gd-ease),
+    color 160ms var(--gd-ease), transform 120ms var(--gd-ease);
+}
+
+.gd-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.gd-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.gd-btn--sm {
+  height: var(--gd-control-h-sm);
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.gd-btn--md {
+  height: var(--gd-control-h);
+  padding: 0 14px;
+}
+
+.gd-btn--lg {
+  height: var(--gd-control-h-lg);
+  padding: 0 18px;
+  font-size: 15px;
+}
+
+.gd-btn--block {
+  display: flex;
+  width: 100%;
+}
+
+.gd-btn--default {
+  background: var(--gd-bg-elevated);
+  border-color: var(--gd-border-strong);
+  color: var(--gd-text);
+}
+
+.gd-btn--default:hover:not(:disabled) {
+  background: var(--gd-bg-spotlight);
+}
+
+.gd-btn--primary {
+  background: var(--gd-primary);
+  color: var(--gd-text-inverse);
+  font-weight: 600;
+}
+
+.gd-btn--primary:hover:not(:disabled) {
+  background: var(--gd-primary-hover);
+}
+
+.gd-btn--primary:active:not(:disabled) {
+  background: var(--gd-primary-active);
+}
+
+.gd-btn--ghost {
+  background: transparent;
+  border-color: var(--gd-border);
+  color: var(--gd-text-secondary);
+}
+
+.gd-btn--ghost:hover:not(:disabled) {
+  border-color: var(--gd-border-strong);
+  color: var(--gd-text);
+}
+
+.gd-btn--danger {
+  background: transparent;
+  border-color: var(--gd-danger);
+  color: var(--gd-danger);
+}
+
+.gd-btn--danger:hover:not(:disabled) {
+  background: var(--gd-danger-soft);
+}
+
+.gd-btn--text {
+  background: transparent;
+  border-color: transparent;
+  color: var(--gd-primary);
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.gd-btn--text:hover:not(:disabled) {
+  background: var(--gd-primary-soft);
+}

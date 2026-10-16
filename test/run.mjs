@@ -65,7 +65,17 @@ section('layout: product vs engine');
     'src/product/nodes/button.js',
     'docs/architecture.md',
     'docs/api.md',
+    'docs/ui.md',
     'skills/engine/README.md',
+    'src/ui/index.js',
+    'src/ui/button.js',
+    'src/ui/control.js',
+    'src/ui/Modal.js',
+    'src/ui/css/ui.css',
+    'src/ui/css/tokens.css',
+    'src/ui/css/control.css',
+    'examples/ui-gallery.html',
+    'examples/ui-gallery.js',
     'src/engine/styles.js',
     'src/product/css/tokens.css',
     'src/product/css/base.css',
@@ -646,6 +656,81 @@ section('product: nodes registry');
   assert(!/switch\s*\(\s*node\.kind/.test(editorSrc), 'EditorComponent has no kind switch');
   assert(editorSrc.includes('ToolbarComponent') && editorSrc.includes('.mount('), 'Editor mounts child Components');
   assert(!editorSrc.includes('ToolbarView'), 'Editor no longer uses View pattern');
+}
+
+section('ui kit');
+{
+  const tokens = readFileSync(join(root, 'src/ui/css/tokens.css'), 'utf8');
+  assert(tokens.includes('--gd-primary'), 'UI tokens define --gd-primary');
+  assert(/#e86a17|#E86A17/.test(tokens), 'default primary is orange');
+  assert(tokens.includes('#fff8f1') || tokens.includes('#fff3e8'), 'light-orange surface tokens present');
+
+  const { Button, cx, Space, Card, Checkbox, Switch, Badge } = await import('../src/ui/index.js');
+  assert(typeof Button === 'function' && typeof Space === 'function', 'UI primitives exported');
+  assert(typeof Checkbox === 'function' && typeof Switch === 'function' && typeof Badge === 'function', 'control primitives exported');
+
+  const listeners = [];
+  globalThis.document = {
+    createElement(tag) {
+      return {
+        tagName: tag.toUpperCase(),
+        children: [],
+        style: {},
+        dataset: {},
+        classList: { toggle() {} },
+        appendChild(child) {
+          this.children.push(child);
+        },
+        setAttribute(name, value) {
+          this[name] = value;
+        },
+        addEventListener(type, handler) {
+          listeners.push({ type, handler });
+        },
+      };
+    },
+    createTextNode(text) {
+      return { nodeType: 3, textContent: String(text) };
+    },
+    head: { appendChild() {} },
+  };
+
+  let clicked = false;
+  const btn = Button({
+    type: 'primary',
+    text: 'Save',
+    onClick: () => {
+      clicked = true;
+    },
+  });
+  assert(btn.e.className.includes('gd-btn--primary'), 'Button applies primary class');
+  assert(btn.e.innerText === 'Save', 'Button text set');
+  listeners.find((l) => l.type === 'click')?.handler();
+  assert(clicked, 'Button onClick fires');
+
+  const card = Card({ title: 'Hi' }, Button({ text: 'Go' }));
+  assert(card.e.className.includes('gd-card'), 'Card root class');
+  assert(typeof cx('a', false, 'b') === 'string' && cx('a', false, 'b') === 'a b', 'cx helper');
+
+  listeners.length = 0;
+  let switched = null;
+  const sw = Switch({
+    checked: true,
+    onChange: (on) => {
+      switched = on;
+    },
+  });
+  assert(sw.e.className.includes('gd-switch--checked'), 'Switch checked class');
+  assert(listeners.some((l) => l.type === 'click'), 'Switch registers click');
+  listeners.find((l) => l.type === 'click')?.handler({});
+  assert(switched === false, 'Switch onChange receives next value');
+
+  const badge = Badge({ count: 12 }, Button({ text: 'Mail' }));
+  assert(badge.e.className.includes('gd-badge'), 'Badge wraps child');
+
+  const modalSrc = readFileSync(join(root, 'src/ui/Modal.js'), 'utf8');
+  assert(modalSrc.includes('gd-modal-portal'), 'Modal mounts via portal (avoids clearing body)');
+  assert(modalSrc.includes('super.mount(this._portal'), 'Modal delegates mount to portal host');
 }
 
 section('skills blocks');

@@ -1,26 +1,29 @@
-# Architecture：产品 vs 引擎
+# Architecture：引擎 / 组件库 / 产品
 
-ProtoLive 分成两层，**禁止混写**：
+三层，**禁止混写职责**：
 
 | 层 | 路径 | 职责 |
 |----|------|------|
-| **引擎 (Engine)** | `src/engine/` | 迷你实模式 DOM 运行时：`Component` / `ComponentRender` / `Element` / `D` / `Log` |
-| **产品 (Product)** | `src/product/` | Live demo 原型设计工具，**必须用引擎**实现页面与导航 |
+| **引擎 (Engine)** | `src/engine/` | 迷你实模式 DOM 运行时：`Component` / `ComponentRender` / `D` / `Log` |
+| **组件库 (UI)** | `src/ui/` | 对标 antd 的常用组件（Button / Input / Modal…），默认**橙色 / 浅橙**主题 |
+| **产品 (Product)** | `src/product/` | 示例应用 ProtoLive（可用引擎 + UI 库） |
 
 ```
-skills/blocks ──► product（积木数据）
-                      │
-                      ▼
-              product components
-           (extends engine.Component)
+src/engine  ──►  src/ui（组件库）
+                    │
+                    ▼
+              src/product / 你的应用
+```
+
+产品示例内部：
+
+```
+skills/blocks ──► product components (extends engine.Component)
                       │
           ┌───────────┼───────────┐
           ▼           ▼           ▼
      页面 Component   子 Component.mount(host)
-   (ComponentRender)  Toolbar/Palette/Artboard/Inspector
-                      │
-                      ▼
-              nodes/*（kind 注册表）
+    (ComponentRender)  Toolbar/Palette/Artboard/Inspector
 ```
 
 ## 引擎

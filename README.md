@@ -1,10 +1,13 @@
-# gd5 Engine
+# gd5 Engine + UI
 
-A minimal **real-DOM** component runtime for the browser — no virtual DOM, no bundler, no framework lock-in. Ship native ES modules; consumers import and write.
+A minimal **real-DOM** component runtime for the browser — no virtual DOM, no bundler — plus an **antd-style UI kit** (`src/ui/`) with a default **orange / light-orange** theme.
 
-`src/product/` (ProtoLive) is **only a reference app** built on the engine. Treat it as documentation by example, not the primary deliverable.
+`src/product/` (ProtoLive) is **only a reference app**. Treat it as documentation by example, not the primary deliverable.
 
-**What APIs exist?** → [`docs/api.md`](docs/api.md) (canonical reference). While coding, use IDE hover on `src/engine` (JSDoc).
+| Layer | Path | Docs |
+|-------|------|------|
+| Engine API | `src/engine/` | [`docs/api.md`](docs/api.md) |
+| UI kit | `src/ui/` | [`docs/ui.md`](docs/ui.md) · gallery [`examples/ui-gallery.html`](examples/ui-gallery.html) |
 
 [中文说明](#中文)
 
@@ -16,9 +19,10 @@ A minimal **real-DOM** component runtime for the browser — no virtual DOM, no 
 |------|----------|
 | Small surface | `Component`, `ComponentRender`, `D` / `bind`, `Log`, style adoption |
 | Real DOM | Mutate elements directly; skip VDOM diff overhead |
-| Zero build | `import` from `src/engine/index.js` over HTTP |
+| Zero build | `import` from `src/engine/index.js` / `src/ui/index.js` over HTTP |
 | One lifecycle | Pages and nested UI both use `mount` / `unmount` |
 | Hard to misuse | `ensureShell`, declarative `onClick`, co-located CSS, auto listener cleanup |
+| Ready-made chrome | `src/ui` Button / Input / Modal… (orange theme by default) |
 
 Inspired by the original gd5 mini framework; this tree is the ES-module evolution.
 
@@ -49,6 +53,23 @@ python3 -m http.server 8080
 ```
 
 Optional later: publish an IIFE/UMD bundle for a global `gd5` if you want a single classic `<script src>` — not required for normal use.
+
+---
+
+## UI kit (component library)
+
+```html
+<link rel="stylesheet" href="./src/ui/css/ui.css">
+<script type="module">
+  import { Button, Card, Space, Modal } from './src/ui/index.js';
+</script>
+```
+
+```js
+Button({ type: 'primary', text: 'Save', onClick: () => this.save() })
+```
+
+Default palette is **orange on light-orange surfaces**. Override `--gd-primary` / `--gd-bg*` as needed. Full catalog: [`docs/ui.md`](docs/ui.md). Preview: `examples/ui-gallery.html`.
 
 ---
 
@@ -209,26 +230,21 @@ Inside a `Component`, prefer `ensureShell` / `paint` so you rarely call `get` + 
 ## Repository layout
 
 ```
-src/engine/          ← engine (primary)
-  index.js           public exports
-  component.js       Component + mount/paint/ensureShell/on
-  component-render.js page stack
-  element.js         D / bind / declarative on*
-  styles.js          adoptStyles
-  log.js
-
-src/product/         ← example app (ProtoLive editor), not required to use the engine
-docs/                deeper engine & architecture notes
-skills/engine/       authoring conventions for agents / contributors
-test/run.mjs         engine + example checks
-index.html           boots the example product
+src/engine/          ← runtime (primary)
+src/ui/              ← component library (Button, Input, Modal…; orange theme)
+src/product/         ← example app (ProtoLive), optional
+examples/            ← ui-gallery.html
+docs/                ← api.md, ui.md, engine.md, architecture.md
+test/run.mjs
+index.html           ← boots example product
 ```
 
 Further reading:
 
-- [`docs/api.md`](docs/api.md) — **API reference** (Component, navigator, D, styles, Log)
-- [`docs/engine.md`](docs/engine.md) — authoring guide, pitfalls, refresh rules
-- [`docs/architecture.md`](docs/architecture.md) — engine vs product boundary
+- [`docs/api.md`](docs/api.md) — engine API reference
+- [`docs/ui.md`](docs/ui.md) — UI kit catalog & theming
+- [`docs/engine.md`](docs/engine.md) — authoring guide, pitfalls
+- [`docs/architecture.md`](docs/architecture.md) — engine / UI / product boundary
 - [`skills/engine/README.md`](skills/engine/README.md) — short authoring skill sheet
 
 ---
@@ -266,29 +282,25 @@ MIT
 
 ## 中文
 
-**gd5** 是一套浏览器端的**迷你实 DOM** 组件引擎：无 Virtual DOM、无强制打包。以原生 ES Module 发布与引用；`src/product/`（ProtoLive）只是基于引擎的**示例产品**，不是主交付物。
+**gd5** = **引擎**（迷你实 DOM 运行时）+ **组件库**（`src/ui/`，对标 antd；默认**橙色 / 浅橙**主题）。`src/product/` 只是示例应用。
 
 ### 怎么用
 
-不需要 `npm run build`。在页面里：
-
 ```html
+<link rel="stylesheet" href="./src/ui/css/ui.css">
 <script type="module">
-  import { Component, ComponentRender, bind } from './src/engine/index.js';
+  import { Component, ComponentRender } from './src/engine/index.js';
+  import { Button, Modal } from './src/ui/index.js';
 </script>
 ```
 
-用任意静态服务器打开（module 需要 HTTP）。可选地再做 IIFE/UMD 的 `dist` 以支持经典全局脚本，但不是默认路径。
+静态服务器打开即可。画廊：`examples/ui-gallery.html`。
 
 ### 开发者要点
 
-- 页面与页内子组件共用 `mount` / `unmount`
-- **页面**由 `init` 注入 `navigator` / `logger`；**子组件**创建时父把这两项放进 deps，用法同为 `this.navigator`
-- 注册可简写：`home: HomePage`（默认 `id=name`）
-- UI：`ensureShell` + `bind`；事件写在 props（`onClick`…）；`window` 用 `this.on`
-- 样式：`static styles = new URL('./X.css', import.meta.url)`，与组件同目录
-- 更新：`setData` / `refresh`，不要靠重复 `navigate`
-- **有哪些 API**：[`docs/api.md`](docs/api.md)；叙事见 [`docs/engine.md`](docs/engine.md)
+- 页面 / 子组件共用 `mount`；页面默认有 `this.navigator`，子组件由父写入 deps
+- 常用 UI 用 `src/ui`，不要手写一堆 `div.btn`
+- **API**：[`docs/api.md`](docs/api.md) · **组件库**：[`docs/ui.md`](docs/ui.md)
 
 ### 示例与测试
 

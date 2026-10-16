@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>gd5 UI Gallery — orange theme</title>
+  <link rel="stylesheet" href="../src/ui/css/ui.css">
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--gd-font);
+      background:
+        radial-gradient(ellipse at 15% 0%, rgba(232, 106, 23, 0.18), transparent 55%),
+        radial-gradient(ellipse at 90% 20%, rgba(255, 180, 100, 0.22), transparent 45%),
+        var(--gd-bg);
+      color: var(--gd-text);
+    }
+    .gallery {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 40px 20px 80px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="gallery"></div>
+  <script type="module" src="./ui-gallery.js"></script>
+</body>
+</html>
