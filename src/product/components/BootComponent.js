@@ -1,8 +1,7 @@
-import { Component, D } from '../../engine/index.js';
+import { Component, D, bind } from '../../engine/index.js';
 
 /**
- * 启动页（产品）— 对应引擎 ComponentRender 的 loading 槽位。
- * render 可刷新：有壳只更新 message。
+ * 启动页（产品）— loading 槽；bind 短名建壳。
  */
 export class BootComponent extends Component {
   constructor(navigator, logger) {
@@ -34,9 +33,9 @@ export class BootComponent extends Component {
 
     if (!messageEl) {
       D.clear(host);
-      const d = new D();
-      d.div({ className: 'boot-message', text: this.state.data.message });
-      const [ref, root] = d.get();
+      const { div, get } = bind();
+      div({ className: 'boot-message', text: this.state.data.message });
+      const [ref, root] = get();
       this.state.ref = ref;
       host.appendChild(root);
       return;

@@ -3,7 +3,7 @@
  * Run: node test/run.mjs
  */
 
-import { Log, LogEnv, Component, ComponentRender, D, Element } from '../src/engine/index.js';
+import { Log, LogEnv, Component, ComponentRender, D, Element, bind } from '../src/engine/index.js';
 import { createStore, DEFAULT_DOC } from '../src/product/lib/store.js';
 import { documentToHtml, escapeHtml, renderNodeHtml } from '../src/product/lib/export.js';
 import { FALLBACK_BLOCKS } from '../src/product/lib/skills.js';
@@ -220,6 +220,9 @@ section('engine: D / Element');
       };
       return el;
     },
+    createTextNode(text) {
+      return { nodeType: 3, textContent: String(text) };
+    },
   };
   const d = new D();
   d.div({ className: 'wrap', id: 'wrap' }).childList([
@@ -253,6 +256,30 @@ section('engine: D / Element');
   assert(ref2.key.save.dataset.action === 'save', 'dataset assigned');
   assert(ref2.key.save.style.marginTop === '8px', 'style object assigned');
   assert(typeof d2.el === 'function', 'd.el helper exists');
+
+  // trailing children
+  const d3 = new D();
+  d3.div({ className: 'parent', id: 'parent' }, d3.span({ className: 'kid', text: 'k' }));
+  const [ref3, root3] = d3.get();
+  assert(root3.children.length === 1 && root3.children[0].innerText === 'k', 'trailing children work');
+  assert(ref3.id.parent, 'trailing-children root keeps id');
+
+  // bind + map
+  const { div, button, map, get, h } = bind();
+  div(
+    { className: 'list', id: 'list' },
+    ...map(
+      [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }],
+      (item, _i, key) => button({ key, className: 'item', text: item.label }),
+      (item) => item.id
+    )
+  );
+  const [ref4, root4] = get();
+  assert(ref4.key.a && ref4.key.b, 'map auto-keys items');
+  assert(root4.children.length === 2, 'map children appended via spread');
+  assert(typeof h === 'function', 'bind exposes h');
+  const nav = h('nav', { className: 'nav', id: 'navX' }, h('span', { text: 'n' }));
+  assert(nav.e.tagName === 'NAV' && nav.e.children.length === 1, 'h builds arbitrary tags');
 }
 
 section('product: store + export');
