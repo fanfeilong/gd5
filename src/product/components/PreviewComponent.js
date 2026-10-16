@@ -2,7 +2,7 @@ import { Component } from '../../engine/index.js';
 import { documentToHtml } from '../lib/export.js';
 
 /**
- * Live Preview（产品）— 模态页。
+ * Live Preview — 按钮事件声明在壳上；Escape 仍用 Component.on(window)。
  */
 export class PreviewComponent extends Component {
   static styles = new URL('./PreviewComponent.css', import.meta.url);
@@ -29,13 +29,6 @@ export class PreviewComponent extends Component {
   }
 
   componentDidAttachEvents() {
-    this.onId('btnClosePreview', 'click', () => this.navigator.goBack());
-    this.onId('btnRefreshPreview', 'click', () => {
-      const name = this.state.data.doc?.meta?.name || 'Untitled';
-      this.setData({
-        title: `预览 · ${name} · ${new Date().toLocaleTimeString()}`,
-      });
-    });
     this.on(window, 'keydown', (event) => {
       if (event.key === 'Escape') this.navigator.goBack();
     });
@@ -61,12 +54,19 @@ export class PreviewComponent extends Component {
                 type: 'button',
                 className: 'btn btn--ghost',
                 text: '刷新',
+                onClick: () => {
+                  const name = this.state.data.doc?.meta?.name || 'Untitled';
+                  this.setData({
+                    title: `预览 · ${name} · ${new Date().toLocaleTimeString()}`,
+                  });
+                },
               }),
               button({
                 id: 'btnClosePreview',
                 type: 'button',
                 className: 'btn btn--ghost',
                 text: '关闭',
+                onClick: () => this.navigator.goBack(),
               })
             )
           ),

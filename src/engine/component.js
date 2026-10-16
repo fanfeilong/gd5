@@ -24,7 +24,7 @@ import { adoptStyles, adoptStylesFor } from './styles.js';
  *
  * 易错点由引擎收掉：
  * - paint / ensureShell：不必手写 clear → bind → get → append
- * - on / onId：监听自动在 unmount 时卸掉
+ * - DOM 事件写在 props（onClick…）；window 等用 on()，unmount 自动卸
  * - unmount 默认清宿主 DOM + 重置 ref（DidUnMount 只做业务清理）
  * - 样式旁挂 + mount 注入，不必在 index.html 堆全量 CSS
  */

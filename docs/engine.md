@@ -40,10 +40,31 @@ goBack / child.unmount()
 | 手写 `D.clear` → `bind` → `get` → `append` | `paint(build)` / `ensureShell(probe, build)` |
 | refresh 拆掉壳 → AttachEvents 失效 | `ensureShell`：壳只建一次 |
 | `getElementById` 与 `host()` 两套 | 页面也走 `mount`，统一 `this.host()` |
-| 忘了 `removeEventListener` | `on` / `onId`，unmount 自动卸 |
+| 事件写在 AttachEvents，和 DOM 分离 | props 里 `onClick` / `onChange` |
+| window 监听忘卸 | `this.on(window, …)`，unmount 自动卸 |
 | 每个组件手写 `state = { data, ref }` | 基类已提供 |
 | DidUnMount 里再清 DOM | 不必；引擎 teardown 统一清 |
 | 样式堆在全局 `app.css` | 旁挂 `FooComponent.css` + `static styles` |
+
+## 声明式事件（与 DOM 同写）
+
+```js
+button({
+  id: 'btnSave',
+  type: 'button',
+  text: '保存',
+  onClick: () => this.save(),
+});
+
+input({ id: 'name', onChange: (e) => this.setData({ name: e.target.value }) });
+
+// 也可用 events 袋：events: { click: fn, dragstart: fn }
+```
+
+- `onClick` → `click`，`onPointerDown` → `pointerdown`，`onDoubleClick` → `dblclick`
+- 壳用 `ensureShell` 只建一次，监听随节点；动态区重建时把 `on*` 写在新 props 里即可
+- **不要**再为树上的节点单独写 `componentDidAttachEvents` + `onId`
+- `window` / `document` 仍用 `this.on(target, type, fn)`
 
 ## 样式与组件同目录
 
@@ -55,17 +76,14 @@ export class ToolbarComponent extends Component {
 ```
 
 - `mount` 前会 `adoptStylesFor(this.constructor)`，相同 URL / 文本只注入一次
-- 也可手写：`Component.adoptStyles(urlOrCssText)` / `adoptStylesFor(Ctor)`
-- **全局**：`css/tokens.css`（变量）+ `css/base.css`（reset、页槽、`.btn` / `.field`）
-- **组件私有**：旁挂 `components/FooComponent.css`，不要再写进大一锅 `app.css`
-- unmount **不**移除样式（多实例 / 再挂载共享）
+- **全局**：`css/tokens.css` + `css/base.css`；**组件私有**旁挂 CSS
 
 ### 推荐骨架
 
 ```js
 export class Panel extends Component {
   componentDidAttachEvents() {
-    this.onId('btnSave', 'click', () => this.save());
+    // 仅非树内目标（window 等）
     this.on(window, 'keydown', (e) => { /* … */ });
   }
 
@@ -75,11 +93,15 @@ export class Panel extends Component {
       ({ div, button }) => {
         div(
           { className: 'panel', id: 'panel' },
-          button({ id: 'btnSave', type: 'button', text: '保存' })
+          button({
+            id: 'btnSave',
+            type: 'button',
+            text: '保存',
+            onClick: () => this.save(),
+          })
         );
       }
     );
-    // refresh 路径：只绑 data → ids()
     const { title } = this.ids();
     if (title) title.textContent = this.state.data.title;
   }
@@ -89,14 +111,12 @@ export class Panel extends Component {
 ## 刷新（Mount 之后）
 
 ```js
-this.setData({ title: '新标题' });     // 合并 state.data 并 refresh()
-this.refresh();                        // 仅再跑 render / 子类覆盖
-this.navigator.refresh();              // 刷新当前页
-this.navigator.refresh('preview');     // 刷新指定已挂载页
+this.setData({ title: '新标题' });
+this.refresh();
+this.navigator.refresh();
 ```
 
-- `AttachEvents` **只在首次 mount**
-- 壳用 `ensureShell`；动态区可局部 `D.clear` 再画（如 Inspector body）
+- 壳用 `ensureShell`；动态区可局部 `D.clear` 再画，并在新节点 props 上带 `on*`
 
 ## API 速查
 
@@ -108,7 +128,8 @@ this.navigator.refresh('preview');     // 刷新指定已挂载页
 | `ids()` / `keys()` | `state.ref.id` / `key` |
 | `paint(build)` | 整棵重建 |
 | `ensureShell(probe, build)` | 壳只建一次 |
-| `on(target, type, fn)` / `onId(id, type, fn)` | 事件（自动清理） |
+| props `onClick` / `events` | 声明式 DOM 事件 |
+| `on(target, type, fn)` | window 等非树内事件 |
 | `static styles` / `adoptStyles` | 旁挂 CSS，mount 注入 |
 | `setData` / `refresh` | 挂载后更新 |
 

@@ -7,24 +7,27 @@
 1. `extends Component`（基类已带 `state = { data, ref }`）
 2. 旁挂 **`MyPanel.css`**，声明 `static styles = new URL('./MyPanel.css', import.meta.url)`
 3. `render()` 用 **`ensureShell`** 建壳，不要手写 clear/bind/get/append
-4. 事件只用 **`on` / `onId`**（写在 `componentDidAttachEvents`）
-5. `componentDidUnMount` 只清业务（订阅、定时器）；**不必** `D.clear(host)`
-6. Mount 后改数据用 `setData` / `refresh`，不要重复 `navigate`
+4. **DOM 事件写在 props**：`onClick` / `onChange` / `onDragStart`…
+5. `window` 等非树内目标才用 `this.on`（可放在 `componentDidAttachEvents`）
+6. `componentDidUnMount` 只清业务；**不必** `D.clear(host)`
+7. Mount 后改数据用 `setData` / `refresh`，不要重复 `navigate`
 
 ```js
 export class MyPanel extends Component {
   static styles = new URL('./MyPanel.css', import.meta.url);
 
-  componentDidAttachEvents() {
-    this.onId('btn', 'click', () => this.doIt());
-  }
-
   render() {
     this.ensureShell(
       (ids) => ids.root,
       ({ div, button }) => {
-        div({ id: 'root', className: 'panel' },
-          button({ id: 'btn', type: 'button', text: 'Go' })
+        div(
+          { id: 'root', className: 'panel' },
+          button({
+            id: 'btn',
+            type: 'button',
+            text: 'Go',
+            onClick: () => this.doIt(),
+          })
         );
       }
     );
@@ -32,22 +35,24 @@ export class MyPanel extends Component {
 }
 ```
 
-全局只放 `css/tokens.css` + `css/base.css`；组件私有 class 写在旁挂 CSS，不要堆回 `app.css`。
+全局只放 `css/tokens.css` + `css/base.css`；组件私有 class 写在旁挂 CSS。
 
 ## Skill：可刷新 render
 
 ```js
 render() {
-  this.ensureShell((ids) => ids.root, ({ div }) => {
-    div({ id: 'root' }, /* 静态壳 */);
+  this.ensureShell((ids) => ids.root, ({ div, button }) => {
+    div(
+      { id: 'root' },
+      button({ id: 'btn', text: 'Go', onClick: () => this.doIt() })
+    );
   });
-  // 每次（含 refresh）：把 state.data 绑到 ids()
   const { title } = this.ids();
   if (title) title.textContent = this.state.data.title;
 }
 ```
 
-动态列表可局部清节点再画；**不要**在 refresh 路径 `paint` 整棵壳（会丢掉 AttachEvents）。
+动态列表可局部清节点再画，并在新 props 上带 `on*`；**不要**在 refresh 路径 `paint` 整棵壳。
 
 ## Skill：产品页要薄，靠 Component 组合
 
@@ -63,6 +68,6 @@ render() {
 
 ## Skill：实 DOM 组合
 
-- 组件内优先 `ensureShell` / `paint`
+- 组件内优先 `ensureShell` / `paint`，事件用 `on*`
 - 节点模块等非 Component 处再用 `bind()` + `get()`
 - 尾参 children、`map(..., keyOf)`；避免 `innerHTML`

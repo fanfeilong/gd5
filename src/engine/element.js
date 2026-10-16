@@ -5,13 +5,63 @@
  * - className：真实 CSS class，可多个
  * - id → ref.id；key → ref.key
  * - text / dataset / style / attrs
+ * - onClick / onChange / …：声明式事件（→ addEventListener）
+ * - events: { click: fn }：补充非标准名
  * - 其它字段：DOM 属性
  *
  * 组合（降噪）：
  * - 尾参 children：`d.div(props, child1, child2)`（仍支持 `.childList`）
  * - `bind(d)` / `D.tags()`：解构短名 + `h`
  * - `d.map(list, render, keyOf)`：列表自动带 key
+ *
+ * 事件写在 props 里，与 DOM 同处；壳用 ensureShell 只建一次，监听随节点生命周期。
+ * window / document 等非树内目标仍用 Component.on。
  */
+
+/** onDoubleClick → dblclick 等特例 */
+const EVENT_NAME_SPECIAL = {
+  doubleclick: 'dblclick',
+};
+
+/**
+ * `onClick` → `click`；`onPointerDown` → `pointerdown`。
+ * @param {string} prop
+ * @returns {string|null}
+ */
+export function domEventType(prop) {
+  if (typeof prop !== 'string' || prop.length < 3 || !prop.startsWith('on')) return null;
+  const third = prop.charCodeAt(2);
+  if (third < 65 || third > 90) return null; // 必须 on + 大写
+  const raw = prop.slice(2).toLowerCase();
+  return EVENT_NAME_SPECIAL[raw] || raw;
+}
+
+/**
+ * 从 props 拆出事件并绑到 el，返回其余属性。
+ * @param {HTMLElement} el
+ * @param {Record<string, any>} props
+ */
+export function applyDomEvents(el, props) {
+  const rest = {};
+  for (const name in props) {
+    const value = props[name];
+    if (name === 'events' && value && typeof value === 'object') {
+      for (const type in value) {
+        if (typeof value[type] === 'function') {
+          el.addEventListener(type, value[type]);
+        }
+      }
+      continue;
+    }
+    const type = domEventType(name);
+    if (type && typeof value === 'function') {
+      el.addEventListener(type, value);
+      continue;
+    }
+    rest[name] = value;
+  }
+  return rest;
+}
 
 function isPlainProps(value) {
   return (
@@ -48,8 +98,11 @@ export class Element {
       dataset,
       style,
       attrs,
-      ...props
+      events,
+      ...rawProps
     } = attributes;
+
+    const props = applyDomEvents(e, { ...rawProps, events });
 
     if (className != null) {
       e.className = className;

@@ -2,7 +2,7 @@ import { Component, D, bind } from '../../engine/index.js';
 import { inspectorModel } from '../nodes/index.js';
 
 /**
- * 属性面板组件：按 inspectorModel 渲染，不做 kind 分支。
+ * 属性面板：壳与动态字段的 onChange / onClick 都写在 props 里。
  */
 export class InspectorComponent extends Component {
   static styles = new URL('./InspectorComponent.css', import.meta.url);
@@ -12,15 +12,6 @@ export class InspectorComponent extends Component {
     this.navigator = navigator;
     this.logger = logger;
     this.store = store;
-  }
-
-  componentDidAttachEvents() {
-    this.onId('boardWidth', 'change', () => {
-      this.store.setMeta({ width: Number(this.ids().boardWidth.value) || 390 });
-    });
-    this.onId('boardHeight', 'change', () => {
-      this.store.setMeta({ height: Number(this.ids().boardHeight.value) || 844 });
-    });
   }
 
   render() {
@@ -43,6 +34,9 @@ export class InspectorComponent extends Component {
                 max: 1440,
                 step: 10,
                 value: 390,
+                onChange: () => {
+                  this.store.setMeta({ width: Number(this.ids().boardWidth.value) || 390 });
+                },
               })
             ),
             label(
@@ -55,6 +49,9 @@ export class InspectorComponent extends Component {
                 max: 2000,
                 step: 10,
                 value: 844,
+                onChange: () => {
+                  this.store.setMeta({ height: Number(this.ids().boardHeight.value) || 844 });
+                },
               })
             )
           )
@@ -81,7 +78,6 @@ export class InspectorComponent extends Component {
     const body = this.ids().inspectorBody;
     if (!body) return;
 
-    // 动态区每次重建；壳层事件仍走 onId（不会被清掉）
     D.clear(body);
 
     const node = this.store.getSelected();
@@ -114,7 +110,11 @@ export class InspectorComponent extends Component {
             key: 'geo-x',
             type: 'number',
             value: model.geometry[0].value,
-            dataset: { geo: model.geometry[0].geo },
+            onChange: (event) => {
+              this.store.updateNode(node.id, {
+                [model.geometry[0].geo]: Number(event.target.value) || 0,
+              });
+            },
           })
         ),
         field(
@@ -124,7 +124,11 @@ export class InspectorComponent extends Component {
             key: 'geo-y',
             type: 'number',
             value: model.geometry[1].value,
-            dataset: { geo: model.geometry[1].geo },
+            onChange: (event) => {
+              this.store.updateNode(node.id, {
+                [model.geometry[1].geo]: Number(event.target.value) || 0,
+              });
+            },
           })
         )
       ),
@@ -137,7 +141,11 @@ export class InspectorComponent extends Component {
             key: 'geo-w',
             type: 'number',
             value: model.geometry[2].value,
-            dataset: { geo: model.geometry[2].geo },
+            onChange: (event) => {
+              this.store.updateNode(node.id, {
+                [model.geometry[2].geo]: Number(event.target.value) || 0,
+              });
+            },
           })
         ),
         field(
@@ -147,7 +155,11 @@ export class InspectorComponent extends Component {
             key: 'geo-h',
             type: 'number',
             value: model.geometry[3].value,
-            dataset: { geo: model.geometry[3].geo },
+            onChange: (event) => {
+              this.store.updateNode(node.id, {
+                [model.geometry[3].geo]: Number(event.target.value) || 0,
+              });
+            },
           })
         )
       ),
@@ -160,13 +172,17 @@ export class InspectorComponent extends Component {
               key: `prop-${f.prop}`,
               rows: 3,
               value: f.value,
-              dataset: { prop: f.prop },
+              onChange: (event) => {
+                this.store.updateNode(node.id, { props: { [f.prop]: event.target.value } });
+              },
             })
           : input({
               key: `prop-${f.prop}`,
               type: 'text',
               value: f.value,
-              dataset: { prop: f.prop },
+              onChange: (event) => {
+                this.store.updateNode(node.id, { props: { [f.prop]: event.target.value } });
+              },
             });
       kids.push(field(f.label, `prop-${f.prop}`, control));
     });
@@ -180,7 +196,9 @@ export class InspectorComponent extends Component {
             key: `style-${f.style}`,
             type: 'text',
             value: f.value,
-            dataset: { style: f.style },
+            onChange: (event) => {
+              this.store.updateNode(node.id, { style: { [f.style]: event.target.value } });
+            },
           })
         )
       );
@@ -194,35 +212,12 @@ export class InspectorComponent extends Component {
           type: 'button',
           className: 'btn btn--danger',
           text: '删除',
-          dataset: { action: 'delete' },
+          onClick: () => this.store.removeNode(node.id),
         })
       )
     );
 
     rootEl.childList(kids);
-    const [treeRef, root] = get();
-    body.appendChild(root);
-
-    Object.values(treeRef.key || {}).forEach((el) => {
-      if (!el || !el.dataset) return;
-      if (el.dataset.prop) {
-        el.addEventListener('change', () => {
-          this.store.updateNode(node.id, { props: { [el.dataset.prop]: el.value } });
-        });
-      }
-      if (el.dataset.geo) {
-        el.addEventListener('change', () => {
-          this.store.updateNode(node.id, { [el.dataset.geo]: Number(el.value) || 0 });
-        });
-      }
-      if (el.dataset.style) {
-        el.addEventListener('change', () => {
-          this.store.updateNode(node.id, { style: { [el.dataset.style]: el.value } });
-        });
-      }
-      if (el.dataset.action === 'delete') {
-        el.addEventListener('click', () => this.store.removeNode(node.id));
-      }
-    });
+    body.appendChild(get()[1]);
   }
 }

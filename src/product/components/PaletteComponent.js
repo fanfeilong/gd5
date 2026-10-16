@@ -1,7 +1,7 @@
 import { Component } from '../../engine/index.js';
 
 /**
- * 积木面板组件：列出 blocks，点击 / 拖放到画布。
+ * 积木面板：点击 / 拖放到画布。事件写在列表容器 props 上。
  */
 export class PaletteComponent extends Component {
   static styles = new URL('./PaletteComponent.css', import.meta.url);
@@ -15,20 +15,6 @@ export class PaletteComponent extends Component {
     this.getBlock = getBlock;
   }
 
-  componentDidAttachEvents() {
-    this.onId('paletteList', 'click', (event) => {
-      const item = event.target.closest('[data-skill-id]');
-      if (!item) return;
-      this._addBlock(item.dataset.skillId);
-    });
-    this.onId('paletteList', 'dragstart', (event) => {
-      const item = event.target.closest('[data-skill-id]');
-      if (!item) return;
-      event.dataTransfer.setData('application/x-protolive-skill', item.dataset.skillId);
-      event.dataTransfer.effectAllowed = 'copy';
-    });
-  }
-
   render() {
     this.ensureShell(
       (ids) => ids.palette,
@@ -38,7 +24,21 @@ export class PaletteComponent extends Component {
           h2({ className: 'panel-title', id: 'paletteTitle', text: '组件' }),
           p({ className: 'panel-hint', id: 'paletteHint', text: '点击或拖到画布' }),
           div(
-            { className: 'palette__list', id: 'paletteList' },
+            {
+              className: 'palette__list',
+              id: 'paletteList',
+              onClick: (event) => {
+                const item = event.target.closest('[data-skill-id]');
+                if (!item) return;
+                this._addBlock(item.dataset.skillId);
+              },
+              onDragStart: (event) => {
+                const item = event.target.closest('[data-skill-id]');
+                if (!item) return;
+                event.dataTransfer.setData('application/x-protolive-skill', item.dataset.skillId);
+                event.dataTransfer.effectAllowed = 'copy';
+              },
+            },
             ...map(
               this.getBlocks?.() || [],
               (block, _i, key) =>
