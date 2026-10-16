@@ -14,12 +14,16 @@ import {
   bind,
   domEventType,
   applyDomEvents,
+  LogProvider,
+  LogLevel,
+  Logger,
   Log,
   LogEnv,
   adoptStyles,
   adoptStylesFor,
 } from '../src/engine/index.js';
 ```
+
 
 IDE tip: methods carry JSDoc on `src/engine/*.js` — hover / go-to-definition in the editor is the fastest lookup while coding.
 
@@ -36,7 +40,7 @@ Base class for pages and nested UI.
 | `this.state.data` | `object` | View model; update via `setData` |
 | `this.state.ref` | `{ class, id, key }` | DOM indexes filled by `paint` / `ensureShell` |
 | `this.navigator` | `{ navigate, goBack, pop, refresh }` \| `null` | Page stack remote (injected for pages; forward in `deps` for children) |
-| `this.logger` | `Log` \| `null` | Injected logger |
+| `this.logger` | `Logger` \| `null` | Injected logger (`LogProvider.logger`) |
 
 ### Static
 
@@ -94,7 +98,7 @@ Owns the page registry and stack.
 
 | Method | Meaning |
 |--------|---------|
-| `constructor({ getUserInfo?, logEnv?, logger? })` | Create runtime + navigator |
+| `constructor({ getUserInfo?, logProvider?, logEnv?, logger? })` | Create runtime + navigator (`logProvider` preferred) |
 | `init({ loading, home }, componentsDef)` | Register pages |
 | `render()` | Navigate to `home`, hide `loading` |
 | `refresh(name?)` | Same as `navigator.refresh` |
@@ -166,13 +170,34 @@ Unmount does **not** remove adopted styles.
 
 ---
 
-## `Log` / `LogEnv`
+## `LogProvider` / `Logger`
+
+Configure logging once, inject the logger into pages.
+
+```js
+import { ComponentRender, LogProvider } from '../engine/index.js';
+
+const logProvider = new LogProvider({
+  level: 'info',              // debug | info | warn | error | silent
+  sink: 'console',            // console | noop | alert | (record) => void
+  context: { machId: 'local', userId: 'demo' },
+});
+
+const app = new ComponentRender({ logProvider });
+```
 
 | API | Meaning |
 |-----|---------|
-| `new Log(env, contexts?)` | Logger |
-| `LogEnv.chrome` / `LogEnv.disable` / … | Environments |
-| `log.i` / `w` / `e` / `fork()` | Emit / child logger |
+| `new LogProvider({ level?, sink?, context? })` | App-level logging config |
+| `LogProvider.fromEnv(env, context?)` | Build from legacy `LogEnv` |
+| `LogLevel.debug` / `info` / `warn` / `error` / `silent` | Numeric levels |
+| `provider.logger` | Root `Logger` |
+| `logger.info` / `warn` / `error` / `debug` | Emit with optional fields |
+| `logger.i` / `w` / `e` | Short aliases |
+| `logger.child({ page })` | Scoped child logger |
+| `createConsoleSink` / `createNoopSink` / `createAlertSink` | Built-in sinks |
+
+Legacy: `LogEnv` + `new Log(env, contexts)` still work and map onto `LogProvider`.
 
 ---
 

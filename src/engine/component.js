@@ -47,7 +47,7 @@ export class Component {
   /**
    * @param {object} [deps]
    * @param {object} [deps.navigator] 页栈遥控器（页面由引擎注入；子组件通常不需要）
-   * @param {import('./log.js').Log} [deps.logger]
+   * @param {import('./log.js').Logger} [deps.logger]
    */
   constructor(deps = {}) {
     this._host = null;

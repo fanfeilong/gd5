@@ -12,11 +12,13 @@ import {
   ComponentRender,
   D,
   Element,
-  Log,
-  LogEnv,
+  LogProvider,
+  LogLevel,
+  Logger,
   bind,
 } from '../src/engine/index.js';
 ```
+
 
 ## 生命周期
 
@@ -198,4 +200,4 @@ const [ref, root] = get();
 |----------|----------|
 | 导航栈、挂载时序、paint/on | 编辑器业务、积木、导出 HTML |
 | `D` / `Element` API | 具体面板布局与样式 |
-| `Log` | 原型文档模型 (store) |
+| `LogProvider` / `Logger` | 原型文档模型 (store) |

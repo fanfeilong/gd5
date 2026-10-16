@@ -1,4 +1,4 @@
-import { Log, LogEnv } from './log.js';
+import { LogEnv, LogProvider } from './log.js';
 
 /**
  * 默认用户信息（浏览器 demo / 本地原型）
@@ -32,15 +32,26 @@ export class ComponentRender {
   /**
    * @param {object} [options]
    * @param {() => {machId:string,userId:string,token:string}} [options.getUserInfo]
-   * @param {string} [options.logEnv]
-   * @param {import('./log.js').Log} [options.logger]
+   * @param {import('./log.js').LogProvider} [options.logProvider] preferred logging config
+   * @param {string} [options.logEnv] legacy {@link LogEnv}; used when logProvider/logger omitted
+   * @param {import('./log.js').Logger} [options.logger] inject an existing logger instance
    */
   constructor(options = {}) {
     const getUserInfo = options.getUserInfo || defaultGetUserInfo;
-    const logEnv = options.logEnv || LogEnv.chrome;
     const { machId, userId, token } = getUserInfo();
-    const loggerContexts = [`machId:${machId}, userId:${userId}, token:${token}`];
-    this.m_logger = options.logger || new Log(logEnv, loggerContexts);
+    const userContext = { machId, userId, token };
+
+    if (options.logger) {
+      this.m_logProvider = options.logger.provider ?? null;
+      this.m_logger = options.logger;
+    } else if (options.logProvider) {
+      this.m_logProvider = options.logProvider;
+      this.m_logger = options.logProvider.logger;
+    } else {
+      this.m_logProvider = LogProvider.fromEnv(options.logEnv || LogEnv.chrome, userContext);
+      this.m_logger = this.m_logProvider.logger;
+    }
+
     this.m_navigator = {
       navigate: (componentName, ...args) => {
         this._navigate(componentName, ...args);

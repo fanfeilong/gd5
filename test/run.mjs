@@ -6,6 +6,11 @@
 import {
   Log,
   LogEnv,
+  LogLevel,
+  LogProvider,
+  Logger,
+  formatLogRecord,
+  normalizeLogContext,
   Component,
   ComponentRender,
   D,
@@ -114,14 +119,66 @@ section('layout: product vs engine');
   assert(!existsSync(join(root, 'index.py')), 'Flask entry removed');
 }
 
-section('engine: Log');
+section('engine: LogProvider');
 {
-  const log = new Log(LogEnv.disable, ['ctx']);
-  log.i('should not throw');
-  assert(log.env() === LogEnv.disable, 'Log env is disable');
-  const forked = log.fork();
+  const records = [];
+  const provider = new LogProvider({
+    level: 'debug',
+    sink: (record) => records.push(record),
+    context: { machId: 't1', userId: 'u1' },
+  });
+
+  assert(provider.logger instanceof Logger, 'root logger is Logger');
+  assert(provider.level === LogLevel.debug, 'provider level is debug');
+
+  provider.logger.info('hello');
+  provider.logger.warn('careful', { step: 2 });
+  provider.logger.debug('trace');
+  assert(records.length === 3, 'custom sink receives records');
+  assert(records[0].level === 'info', 'info level name');
+  assert(records[0].message === 'hello', 'info message');
+  assert(records[0].context.machId === 't1', 'root context machId');
+  assert(records[1].context.step === 2, 'fields merge into context');
+  assert(
+    formatLogRecord(records[0]).includes('[INFO]') &&
+      formatLogRecord(records[0]).includes('machId=t1'),
+    'formatLogRecord includes level and context'
+  );
+
+  const child = provider.logger.child({ page: 'editor' });
+  child.error('boom');
+  assert(records[3].level === 'error', 'child error level');
+  assert(records[3].context.page === 'editor', 'child merges page context');
+  assert(records[3].context.userId === 'u1', 'child keeps parent context');
+  assert(child !== provider.logger, 'child is a new logger');
+  assert(provider.logger.context.page === undefined, 'parent context unchanged');
+
+  provider.setLevel('warn');
+  const before = records.length;
+  provider.logger.info('filtered');
+  provider.logger.warn('visible');
+  assert(records.length === before + 1, 'level filter drops info');
+  assert(records[records.length - 1].message === 'visible', 'warn still emitted');
+
+  const silent = new LogProvider({ level: 'silent', sink: (r) => records.push(r) });
+  const beforeSilent = records.length;
+  silent.logger.error('nope');
+  assert(records.length === beforeSilent, 'silent level drops all');
+
+  const parsed = normalizeLogContext(['machId:local, userId:demo, token:']);
+  assert(parsed.machId === 'local', 'normalize legacy machId');
+  assert(parsed.userId === 'demo', 'normalize legacy userId');
+
+  const legacy = new Log(LogEnv.disable, ['ctx']);
+  legacy.i('should not throw');
+  assert(legacy.env() === LogEnv.disable, 'Log env is disable');
+  const forked = legacy.fork();
   forked.pushContext('more');
-  assert(forked !== log, 'Log.fork returns new instance');
+  assert(forked !== legacy, 'Log.fork returns new instance');
+
+  const fromEnv = LogProvider.fromEnv(LogEnv.chrome, { app: 'gd5' });
+  assert(fromEnv.env === LogEnv.chrome, 'fromEnv chrome');
+  assert(fromEnv.logger.context.app === 'gd5', 'fromEnv context');
 }
 
 section('engine: Component + ComponentRender navigation');
@@ -164,7 +221,9 @@ section('engine: Component + ComponentRender navigation');
     render() {}
   }
 
-  const render = new ComponentRender({ logEnv: LogEnv.disable });
+  const render = new ComponentRender({
+    logProvider: new LogProvider({ level: 'silent', sink: 'noop' }),
+  });
   render.init(
     { loading: 'boot', home: 'editor' },
     {
