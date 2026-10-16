@@ -7,16 +7,64 @@
  *   ref: {}   // 视图 HTML Element 的索引
  * };
  *
+ * 两种挂载方式：
+ * 1. 页面：ComponentRender.navigate → 按 id 槽显示
+ * 2. 组合：父组件 render 出宿主后，子组件 mount(host) 走同一套生命周期
+ *
  * 刷新约定（Mount 之后）：
  * - setData(patch) 合并 this.state.data，并默认调用 refresh()
- * - refresh() 默认再跑 render()，用于把 data 绑回已有 ref
- * - AttachEvents 仍只在首次 mount 时调用；因此 render() 在 refresh
- *   路径上应尽量「有壳则只绑数据」，不要 D.clear 毁掉已绑事件的节点
- * - 若某页必须整页重建 DOM，请 override refresh() 并自行处理事件
+ * - refresh() 默认再跑 render()；AttachEvents 只在首次 mount
  */
 export class Component {
   constructor() {
-    // subclass sets this.state
+    this._host = null;
+    this._mounted = false;
+  }
+
+  /**
+   * 当前宿主 DOM（页槽或父组件给出的 mount 点）
+   * @returns {HTMLElement|null}
+   */
+  host() {
+    return this._host;
+  }
+
+  /**
+   * 是否已 mount（含页内子组件）
+   */
+  isMounted() {
+    return this._mounted;
+  }
+
+  /**
+   * 挂到宿主并走完整生命周期（页内组合用，不经导航栈）。
+   * @param {string|HTMLElement} host id 或元素
+   * @param {object} [params]
+   */
+  async mount(host, params = {}) {
+    if (this._mounted) {
+      this.refresh();
+      return this;
+    }
+    this._host = typeof host === 'string' ? document.getElementById(host) : host;
+    if (!this._host) {
+      throw new Error('Component.mount: host not found');
+    }
+    await this.componentDidMount(params);
+    this.render();
+    this.componentDidAttachEvents();
+    this._mounted = true;
+    return this;
+  }
+
+  /**
+   * 卸载：DidUnMount + 清空宿主（子组件组合对称 API）
+   */
+  unmount() {
+    if (!this._mounted) return;
+    this.componentDidUnMount();
+    this._mounted = false;
+    this._host = null;
   }
 
   /**
@@ -48,30 +96,21 @@ export class Component {
 
   /** virtual method */
   async componentDidMount() {
-    // 组件创建后，navigate 过来时会被调用
+    // 组件创建后，navigate / mount 过来时会被调用
   }
 
   /** virtual method */
   componentDidUnMount() {
-    // 组件创建后，执行 goBack 时会被调用
-    // 1. 用来清理数据，例如重新初始化 this.state.data
-    // 2. 用来清理视图，例如清空 this.state.ref 里动态添加的 HTML Element
+    // goBack / unmount 时调用：清理 data、动态 DOM、监听器
   }
 
   /** virtual method */
   componentDidAttachEvents() {
-    // 组件渲染之后，在此对 this.state.ref 里对各 HTML Element 添加事件
+    // 首次 render 之后绑事件
   }
 
   /** virtual method */
   render() {
-    // 组件 Mount 之后，执行的渲染动作
-    // HTML Element 有两种来源：
-    // 1. 直接在 .html 里预先写好的
-    //   * 将必须的 HTML Element 添加到 this.state.ref 索引，供后续使用
-    //   * 做必要的数据重新绑定动作，数据源在 this.state.data 里
-    // 2. 根据 this.state.data 里的数据，动态修改 HTML Element，
-    //   * 包括数据绑定
-    //   * HTML Element 元素增减，例如 List 列表的展示
+    // 绑定 state.data → state.ref / host DOM
   }
 }

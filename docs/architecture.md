@@ -14,53 +14,41 @@ skills/blocks ──► product（积木数据）
               product components
            (extends engine.Component)
                       │
-                      ▼
-              engine.ComponentRender
-           navigate / goBack / modal
+          ┌───────────┼───────────┐
+          ▼           ▼           ▼
+     页面 Component   子 Component.mount(host)
+   (ComponentRender)  Toolbar/Palette/Artboard/Inspector
                       │
                       ▼
-                 真实 DOM 页面槽
-              #boot / #editor / #preview
+              nodes/*（kind 注册表）
 ```
 
-## 引擎（不可被产品逻辑替代）
+## 引擎
 
-来自原 gd5 设计：
+- `Component`：生命周期 + `setData` / `refresh` + **`mount(host)` / `unmount()`**（页内组合）
+- `ComponentRender`：页面栈 `navigate` / `goBack` / modal
+- `D` / `bind` / `map`：实 DOM 组合
 
-- `Component`：`componentDidMount` → `render` → `componentDidAttachEvents` / `componentDidUnMount`
-- `ComponentRender`：页面栈、`navigate` / `goBack` / `pop`、模态透底
-- `D` / `Element`：可组合实 DOM 构建（非 Virtual DOM）
-- `Log`：环境感知日志
+产品不得另起一套 View 生命周期绕开 `Component`。
 
-产品不得再发明第二套页面导航或生命周期。
+## 产品组件怎么拆
 
-## 产品
+| 类型 | 例子 | 挂载方式 |
+|------|------|----------|
+| 页面 | Boot / Editor / Preview | `ComponentRender` 槽 `#boot` 等 |
+| 页内子组件 | Toolbar / Palette / Artboard / Inspector | 父 `render` 出 `host-*`，子 `mount(host)` |
+| 节点模块 | `nodes/button.js` | 非 Component：`create` / `update` / `inspectorFields` |
 
-**页面组件**（进 `ComponentRender` 栈）只做组合；**视图 / 节点** 一模块一事。
-
-| 层 | 路径 | 职责 |
-|----|------|------|
-| 页面 | `components/*Component.js` | 导航槽：boot / editor / preview |
-| 视图 | `views/*View.js` | Toolbar / Palette / Artboard / Inspector |
-| 节点 | `nodes/*.js` | 每种画布 kind：`create` / `update` / `inspectorFields` |
-
-`EditorComponent` 只：`shell` 组合子视图、`attach` 转发、`subscribe → paint`。  
-kind 分支与属性表单条件不进 Editor，进 `nodes/` 注册表。
+`EditorComponent` 只组合：建宿主 → `child.mount` → `store.subscribe → child.refresh`。
 
 ## 目录
 
 ```
-docs/
-src/engine/          # 引擎
+src/engine/
 src/product/
-  components/        # 页面组件（薄）
-  views/             # 可组合视图
-  nodes/             # 画布节点 kind
+  components/   # 全部为 Component（页面 + 页内）
+  nodes/        # 画布 kind
   lib/
   css/
   main.js
-skills/blocks/
-skills/engine/
-test/
-index.html
 ```

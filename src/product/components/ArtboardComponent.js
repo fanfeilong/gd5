@@ -1,32 +1,32 @@
+import { Component, D, bind } from '../../engine/index.js';
 import { createNodeElement, syncNodeElement } from '../nodes/index.js';
 
 /**
- * 中央画布：放置 / 拖动 / 选中原型节点。
+ * 画布组件：放置 / 拖动 / 选中原型节点。
  */
-export class ArtboardView {
-  constructor({ store, getBlock }) {
+export class ArtboardComponent extends Component {
+  constructor(navigator, logger, { store, getBlock } = {}) {
+    super();
+    this.navigator = navigator;
+    this.logger = logger;
     this.store = store;
     this.getBlock = getBlock;
     this._dragState = null;
+    this.state = { data: {}, ref: {} };
   }
 
-  shell(ui) {
-    const { main, div } = ui;
-    return main(
-      { className: 'workspace', id: 'workspace' },
-      div(
-        { className: 'artboard-wrap', id: 'artboardWrap' },
-        div(
-          { className: 'artboard', id: 'artboard', dataset: { dropZone: 'true' } },
-          div({ className: 'canvas', id: 'canvas' })
-        )
-      )
-    );
+  async componentDidMount() {}
+
+  componentDidUnMount() {
+    const host = this.host();
+    if (host) D.clear(host);
+    this.state.ref = {};
+    this._dragState = null;
   }
 
-  attach(ref) {
-    const artboard = ref.id?.artboard;
-    const canvas = ref.id?.canvas;
+  componentDidAttachEvents() {
+    const artboard = this.state.ref.id?.artboard;
+    const canvas = this.state.ref.id?.canvas;
     if (!artboard || !canvas) return;
 
     artboard.addEventListener('dragover', (event) => {
@@ -39,7 +39,7 @@ export class ArtboardView {
       artboard.classList.remove('is-dragover');
       const skillId = event.dataTransfer.getData('application/x-protolive-skill');
       if (!skillId) return;
-      const block = this.getBlock(skillId);
+      const block = this.getBlock?.(skillId);
       if (!block) return;
       const point = clientToEl(canvas, event.clientX, event.clientY);
       this.store.addNode(block, {
@@ -55,19 +55,45 @@ export class ArtboardView {
     });
   }
 
-  paint(ref) {
+  render() {
+    const host = this.host();
+    if (!host) return;
+
+    // 首次建壳；之后 refresh 只同步节点
+    if (!this.state.ref.id?.canvas) {
+      D.clear(host);
+      const { main, div, get } = bind();
+      main(
+        { className: 'workspace', id: 'workspace' },
+        div(
+          { className: 'artboard-wrap', id: 'artboardWrap' },
+          div(
+            { className: 'artboard', id: 'artboard', dataset: { dropZone: 'true' } },
+            div({ className: 'canvas', id: 'canvas' })
+          )
+        )
+      );
+      const [ref, root] = get();
+      this.state.ref = ref;
+      host.appendChild(root);
+    }
+
+    this._syncCanvas();
+  }
+
+  refresh() {
+    this._syncCanvas();
+  }
+
+  _syncCanvas() {
     const { doc, selectedId } = this.store.getState();
-    const artboard = ref.id?.artboard;
-    const canvas = ref.id?.canvas;
-    const boardWidth = ref.id?.boardWidth;
-    const boardHeight = ref.id?.boardHeight;
+    const artboard = this.state.ref.id?.artboard;
+    const canvas = this.state.ref.id?.canvas;
     if (!artboard || !canvas) return;
 
     artboard.style.width = `${doc.meta.width}px`;
     artboard.style.height = `${doc.meta.height}px`;
     artboard.style.background = doc.meta.background || '#f7f4ef';
-    if (boardWidth) boardWidth.value = doc.meta.width;
-    if (boardHeight) boardHeight.value = doc.meta.height;
 
     const existing = new Map(
       [...canvas.querySelectorAll('.prototype-node')].map((el) => [el.dataset.id, el])

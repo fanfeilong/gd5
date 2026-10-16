@@ -25,11 +25,12 @@ render() {
 this.setData({ message: 'updated' });
 ```
 
-## Skill：产品页要薄，靠组合
+## Skill：产品页要薄，靠 Component 组合
 
-- `*Component`（进导航栈）只组装 `views` / `nodes`
-- 一个 `*View` 只做一件事（Toolbar / Palette / Artboard / Inspector）
-- 画布 kind 一个文件：`create` + `update` + `inspectorFields`，禁止在 Editor 里 `switch (kind)`
+- 页面与页内模块**都是** `extends Component`，不要另造 View 生命周期
+- 父组件 `render` 出宿主，子组件 `mount(host)` / `unmount()` / `refresh()`
+- 一组件一事：Toolbar / Palette / Artboard / Inspector 各一个 Component
+- 画布 kind 用 `nodes/*` 注册表（`create` / `update` / `inspectorFields`），禁止在 Editor 里 `switch (kind)`
 
 ## Skill：模态页
 

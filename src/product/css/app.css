@@ -30,6 +30,11 @@ body {
   overflow: hidden;
 }
 
+/* 页内子 Component 宿主：不占布局，子根节点直接进 .app 网格 */
+.app > .component-host {
+  display: contents;
+}
+
 #preview {
   position: fixed;
   inset: 0;
