@@ -64,6 +64,7 @@ section('layout: product vs engine');
     'src/product/nodes/index.js',
     'src/product/nodes/button.js',
     'docs/architecture.md',
+    'docs/api.md',
     'skills/engine/README.md',
     'src/engine/styles.js',
     'src/product/css/tokens.css',

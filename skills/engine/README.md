@@ -2,6 +2,8 @@
 
 编写 / 扩展 ProtoLive **产品页**时遵循的引擎约定。
 
+查「有哪些 API」→ [`docs/api.md`](../../docs/api.md)。
+
 ## Skill：新建组件（页面或页内）
 
 1. `extends Component` + `super(deps)` → 用 `this.navigator`（页面由 init 注入；子组件由父写入 deps）

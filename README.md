@@ -4,6 +4,8 @@ A minimal **real-DOM** component runtime for the browser — no virtual DOM, no 
 
 `src/product/` (ProtoLive) is **only a reference app** built on the engine. Treat it as documentation by example, not the primary deliverable.
 
+**What APIs exist?** → [`docs/api.md`](docs/api.md) (canonical reference). While coding, use IDE hover on `src/engine` (JSDoc).
+
 [中文说明](#中文)
 
 ---
@@ -224,7 +226,8 @@ index.html           boots the example product
 
 Further reading:
 
-- [`docs/engine.md`](docs/engine.md) — API detail, pitfalls, refresh rules
+- [`docs/api.md`](docs/api.md) — **API reference** (Component, navigator, D, styles, Log)
+- [`docs/engine.md`](docs/engine.md) — authoring guide, pitfalls, refresh rules
 - [`docs/architecture.md`](docs/architecture.md) — engine vs product boundary
 - [`skills/engine/README.md`](skills/engine/README.md) — short authoring skill sheet
 
@@ -285,7 +288,7 @@ MIT
 - UI：`ensureShell` + `bind`；事件写在 props（`onClick`…）；`window` 用 `this.on`
 - 样式：`static styles = new URL('./X.css', import.meta.url)`，与组件同目录
 - 更新：`setData` / `refresh`，不要靠重复 `navigate`
-- 详细约定见 [`docs/engine.md`](docs/engine.md)、[`skills/engine/README.md`](skills/engine/README.md)
+- **有哪些 API**：[`docs/api.md`](docs/api.md)；叙事见 [`docs/engine.md`](docs/engine.md)
 
 ### 示例与测试
 
