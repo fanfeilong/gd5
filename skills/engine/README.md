@@ -25,6 +25,12 @@ render() {
 this.setData({ message: 'updated' });
 ```
 
+## Skill：产品页要薄，靠组合
+
+- `*Component`（进导航栈）只组装 `views` / `nodes`
+- 一个 `*View` 只做一件事（Toolbar / Palette / Artboard / Inspector）
+- 画布 kind 一个文件：`create` + `update` + `inspectorFields`，禁止在 Editor 里 `switch (kind)`
+
 ## Skill：模态页
 
 在 `ComponentRender.init` 里设 `isModal: true`。  

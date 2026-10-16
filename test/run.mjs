@@ -7,6 +7,7 @@ import { Log, LogEnv, Component, ComponentRender, D, Element, bind } from '../sr
 import { createStore, DEFAULT_DOC } from '../src/product/lib/store.js';
 import { documentToHtml, escapeHtml, renderNodeHtml } from '../src/product/lib/export.js';
 import { FALLBACK_BLOCKS } from '../src/product/lib/skills.js';
+import { createNodeElement, inspectorModel, registry } from '../src/product/nodes/index.js';
 import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -43,6 +44,12 @@ section('layout: product vs engine');
     'src/product/components/EditorComponent.js',
     'src/product/components/PreviewComponent.js',
     'src/product/components/BootComponent.js',
+    'src/product/views/ToolbarView.js',
+    'src/product/views/PaletteView.js',
+    'src/product/views/ArtboardView.js',
+    'src/product/views/InspectorView.js',
+    'src/product/nodes/index.js',
+    'src/product/nodes/button.js',
     'docs/architecture.md',
     'skills/engine/README.md',
   ]) {
@@ -310,6 +317,51 @@ section('product: store + export');
   });
   assert(html.includes('Demo') && html.includes('Go'), 'documentToHtml includes content');
   assert(FALLBACK_BLOCKS.length >= 6, 'fallback blocks present');
+}
+
+section('product: nodes registry');
+{
+  assert(Object.keys(registry).length >= 6, 'node kinds registered');
+
+  globalThis.document = {
+    createElement(tag) {
+      return {
+        tagName: tag.toUpperCase(),
+        children: [],
+        style: {},
+        dataset: {},
+        classList: { toggle() {} },
+        appendChild(child) {
+          this.children.push(child);
+        },
+      };
+    },
+    createTextNode(text) {
+      return { nodeType: 3, textContent: String(text) };
+    },
+  };
+
+  const node = {
+    id: 'n_btn',
+    kind: 'button',
+    label: '按钮',
+    x: 0,
+    y: 0,
+    width: 100,
+    height: 40,
+    props: { text: 'Hi' },
+    style: { background: '#2bb0a6' },
+  };
+  const el = createNodeElement(node);
+  assert(el.dataset.kind === 'button' && el.innerText === 'Hi', 'button node create via registry');
+
+  const model = inspectorModel(node);
+  assert(model.props.some((f) => f.prop === 'text'), 'inspectorModel uses kind fields');
+  assert(model.geometry.length === 4, 'inspectorModel includes geometry');
+
+  const editorSrc = readFileSync(join(root, 'src/product/components/EditorComponent.js'), 'utf8');
+  assert(!/switch\s*\(\s*node\.kind/.test(editorSrc), 'EditorComponent has no kind switch');
+  assert(editorSrc.includes('ToolbarView') && editorSrc.includes('PaletteView'), 'Editor composes views');
 }
 
 section('skills blocks');
