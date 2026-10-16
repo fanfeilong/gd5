@@ -27,8 +27,9 @@ import { adoptStyles, adoptStylesFor } from './styles.js';
  * - DOM 事件写在 props（onClick…）；window 等用 on()，unmount 自动卸
  * - unmount 默认清宿主 DOM + 重置 ref（DidUnMount 只做业务清理）
  * - 样式旁挂 + mount 注入，不必在 index.html 堆全量 CSS
- * - navigator / logger：仅页面由 ComponentRender 默认注入；页内子组件用 new Child(业务deps)，
- *   需要导航时由父组件传回调（如 onPreview），不必再发明组合 API
+ * - navigator / logger：页面由 ComponentRender 注入；子组件由父写入 deps，用法同为 this.navigator
+ *
+ * API 一览：docs/api.md
  */
 export class Component {
   /**

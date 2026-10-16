@@ -2,6 +2,8 @@
 
 迷你实模式 HTML 组件引擎（原 gd5 框架，ES module 化）。
 
+**完整 API 列表**见 [`api.md`](./api.md)（本页偏写法与坑）。
+
 ## 入口
 
 ```js
@@ -153,18 +155,9 @@ this.navigator.refresh();
 
 ## API 速查
 
-| 方法 | 作用 |
-|------|------|
-| `mount(host, params)` | 挂载（页面 / 子组件） |
-| `unmount()` | 卸载 + 自动清理 |
-| `host()` / `isMounted()` | 宿主与状态 |
-| `ids()` / `keys()` | `state.ref.id` / `key` |
-| `paint(build)` | 整棵重建 |
-| `ensureShell(probe, build)` | 壳只建一次 |
-| props `onClick` / `events` | 声明式 DOM 事件 |
-| `on(target, type, fn)` | window 等非树内事件 |
-| `static styles` / `adoptStyles` | 旁挂 CSS，mount 注入 |
-| `setData` / `refresh` | 挂载后更新 |
+完整表与参数说明 → **[`api.md`](./api.md)**。
+
+常用：`mount` / `unmount` / `ensureShell` / `setData` / `ids` / `on` / `static styles` / `this.navigator.*`。
 
 ## D / Element（实 DOM DSL）
 
