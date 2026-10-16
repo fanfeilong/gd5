@@ -663,7 +663,8 @@ section('ui kit');
   const tokens = readFileSync(join(root, 'src/ui/css/tokens.css'), 'utf8');
   assert(tokens.includes('--gd-primary'), 'UI tokens define --gd-primary');
   assert(/#e86a17|#E86A17/.test(tokens), 'default primary is orange');
-  assert(tokens.includes('#fff8f1') || tokens.includes('#fff3e8'), 'light-orange surface tokens present');
+  assert(tokens.includes('--gd-bg-container: #ffffff') || tokens.includes('--gd-bg-elevated: #ffffff'), 'panels default to white');
+  assert(tokens.includes('#f7f4f0') || tokens.includes('--gd-bg:'), 'warm page background token present');
 
   const { Button, cx, Space, Card, Checkbox, Switch, Badge } = await import('../src/ui/index.js');
   assert(typeof Button === 'function' && typeof Space === 'function', 'UI primitives exported');

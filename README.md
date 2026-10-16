@@ -1,6 +1,6 @@
 # gd5 Engine + UI
 
-A minimal **real-DOM** component runtime for the browser — no virtual DOM, no bundler — plus an **antd-style UI kit** (`src/ui/`) with a default **orange / light-orange** theme.
+A minimal **real-DOM** component runtime for the browser — no virtual DOM, no bundler — plus an **antd-style UI kit** (`src/ui/`) with orange primary and **white panels**.
 
 `src/product/` (ProtoLive) is **only a reference app**. Treat it as documentation by example, not the primary deliverable.
 
@@ -69,7 +69,7 @@ Optional later: publish an IIFE/UMD bundle for a global `gd5` if you want a sing
 Button({ type: 'primary', text: 'Save', onClick: () => this.save() })
 ```
 
-Default palette is **orange on light-orange surfaces**. Override `--gd-primary` / `--gd-bg*` as needed. Full catalog: [`docs/ui.md`](docs/ui.md). Preview: `examples/ui-gallery.html`.
+Default palette is **orange primary + white panels** on a soft warm page. Override `--gd-primary` / `--gd-bg*` as needed. Full catalog: [`docs/ui.md`](docs/ui.md). Preview: `examples/ui-gallery.html`.
 
 ---
 
@@ -282,7 +282,7 @@ MIT
 
 ## 中文
 
-**gd5** = **引擎**（迷你实 DOM 运行时）+ **组件库**（`src/ui/`，对标 antd；默认**橙色 / 浅橙**主题）。`src/product/` 只是示例应用。
+**gd5** = **引擎**（迷你实 DOM 运行时）+ **组件库**（`src/ui/`，对标 antd；默认**橙色主色 + 白色面板**）。`src/product/` 只是示例应用。
 
 ### 怎么用
 

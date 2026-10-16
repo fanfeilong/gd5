@@ -46,7 +46,7 @@ class GalleryPage extends Component {
           Title({ level: 1, text: 'gd5 UI' }),
           Text({
             type: 'secondary',
-            text: 'Component library on the real-DOM engine — antd-style primitives. Default theme: orange / light orange.',
+            text: 'Component library on the real-DOM engine — antd-style primitives. Orange primary, white panels.',
           }),
 
           Card(
