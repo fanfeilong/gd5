@@ -1,0 +1,38 @@
+/* ToolbarComponent */
+
+.toolbar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-panel);
+}
+
+.toolbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.toolbar__mark {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  background: linear-gradient(135deg, var(--accent), #1a7a74);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.toolbar__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+
+.toolbar__actions {
+  display: flex;
+  gap: 8px;
+}

@@ -5,6 +5,8 @@ import { documentToHtml } from '../lib/export.js';
  * Live Preview（产品）— 模态页。
  */
 export class PreviewComponent extends Component {
+  static styles = new URL('./PreviewComponent.css', import.meta.url);
+
   constructor(navigator, logger) {
     super();
     this.navigator = navigator;

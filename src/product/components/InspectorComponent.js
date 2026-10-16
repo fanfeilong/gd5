@@ -5,6 +5,8 @@ import { inspectorModel } from '../nodes/index.js';
  * 属性面板组件：按 inspectorModel 渲染，不做 kind 分支。
  */
 export class InspectorComponent extends Component {
+  static styles = new URL('./InspectorComponent.css', import.meta.url);
+
   constructor(navigator, logger, { store } = {}) {
     super();
     this.navigator = navigator;
