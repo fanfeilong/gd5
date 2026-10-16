@@ -1,18 +1,16 @@
 import { Component } from '../../engine/index.js';
 
 /**
- * 积木面板：点击 / 拖放到画布。事件写在列表容器 props 上。
+ * 积木面板。业务只收 store / blocks；runtime 默认继承。
  */
 export class PaletteComponent extends Component {
   static styles = new URL('./PaletteComponent.css', import.meta.url);
 
-  constructor(navigator, logger, { store, getBlocks, getBlock } = {}) {
-    super();
-    this.navigator = navigator;
-    this.logger = logger;
-    this.store = store;
-    this.getBlocks = getBlocks;
-    this.getBlock = getBlock;
+  constructor(deps = {}) {
+    super(deps);
+    this.store = deps.store;
+    this.getBlocks = deps.getBlocks;
+    this.getBlock = deps.getBlock;
   }
 
   render() {

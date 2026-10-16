@@ -2,15 +2,13 @@ import { Component } from '../../engine/index.js';
 import { documentToHtml } from '../lib/export.js';
 
 /**
- * Live Preview — 按钮事件声明在壳上；Escape 仍用 Component.on(window)。
+ * Live Preview — this.navigator 默认可用。
  */
 export class PreviewComponent extends Component {
   static styles = new URL('./PreviewComponent.css', import.meta.url);
 
-  constructor(navigator, logger) {
-    super();
-    this.navigator = navigator;
-    this.logger = logger;
+  constructor(deps) {
+    super(deps);
     this.state.data.doc = null;
     this.state.data.title = 'Live Preview';
   }
@@ -19,7 +17,7 @@ export class PreviewComponent extends Component {
     const doc = params?.doc || null;
     this.state.data.doc = doc;
     this.state.data.title = doc?.meta?.name ? `预览 · ${doc.meta.name}` : 'Live Preview';
-    this.logger.i(`PreviewComponent mounted from ${params?.source || 'unknown'}`);
+    this.logger?.i(`PreviewComponent mounted from ${params?.source || 'unknown'}`);
   }
 
   componentDidUnMount() {

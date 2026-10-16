@@ -2,17 +2,15 @@ import { Component } from '../../engine/index.js';
 import { createNodeElement, syncNodeElement } from '../nodes/index.js';
 
 /**
- * 画布：放置 / 拖动 / 选中。拖放与指针事件在壳 props 上声明。
+ * 画布。业务 deps 即可；navigator/logger 默认继承。
  */
 export class ArtboardComponent extends Component {
   static styles = new URL('./ArtboardComponent.css', import.meta.url);
 
-  constructor(navigator, logger, { store, getBlock } = {}) {
-    super();
-    this.navigator = navigator;
-    this.logger = logger;
-    this.store = store;
-    this.getBlock = getBlock;
+  constructor(deps = {}) {
+    super(deps);
+    this.store = deps.store;
+    this.getBlock = deps.getBlock;
     this._dragState = null;
   }
 

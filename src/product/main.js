@@ -5,6 +5,8 @@
  * - boot  → loading 槽
  * - editor → home
  * - preview → 模态预览（isModal）
+ *
+ * 注册可简写：默认 id=name、isMount=false；页面构造自动获得 navigator/logger。
  */
 
 import { ComponentRender, LogEnv } from '../engine/index.js';
@@ -27,24 +29,9 @@ render.init(
     home: 'editor',
   },
   {
-    boot: {
-      type: BootComponent,
-      isMount: false,
-      isModal: false,
-      id: 'boot',
-    },
-    editor: {
-      type: EditorComponent,
-      isMount: false,
-      isModal: false,
-      id: 'editor',
-    },
-    preview: {
-      type: PreviewComponent,
-      isMount: false,
-      isModal: true,
-      id: 'preview',
-    },
+    boot: BootComponent,
+    editor: EditorComponent,
+    preview: { type: PreviewComponent, isModal: true },
   }
 );
 

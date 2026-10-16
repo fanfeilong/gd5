@@ -1,18 +1,17 @@
 import { Component } from '../../engine/index.js';
 
 /**
- * 顶栏组件：撤销 / 重做 / 预览 / 导出。
- * 事件在 render props 里声明（onClick）。
+ * 顶栏：撤销 / 重做 / 预览 / 导出。
+ * 不依赖 navigator；预览由父页面通过 onPreview 回调触发。
  */
 export class ToolbarComponent extends Component {
   static styles = new URL('./ToolbarComponent.css', import.meta.url);
 
-  constructor(navigator, logger, { store, onExport } = {}) {
-    super();
-    this.navigator = navigator;
-    this.logger = logger;
-    this.store = store;
-    this.onExport = onExport;
+  constructor(deps = {}) {
+    super(deps);
+    this.store = deps.store;
+    this.onExport = deps.onExport;
+    this.onPreview = deps.onPreview;
   }
 
   render() {
@@ -47,10 +46,7 @@ export class ToolbarComponent extends Component {
               type: 'button',
               className: 'btn btn--secondary',
               text: '预览',
-              onClick: () => {
-                const { doc } = this.store.getState();
-                this.navigator.navigate('preview', { doc });
-              },
+              onClick: () => this.onPreview?.(),
             }),
             button({
               id: 'btnExport',

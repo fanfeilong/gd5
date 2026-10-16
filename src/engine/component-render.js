@@ -62,6 +62,16 @@ export class ComponentRender {
     this.state = null;
   }
 
+  /**
+   * 注册页面。
+   *
+   * 简写：`home: HomePage` 或 `home: { type: HomePage, isModal: true }`
+   * 默认：`id = name`，`isMount = false`，`isModal = false`
+   * 构造时自动注入 `{ navigator, logger }`，组件内直接 `this.navigator`。
+   *
+   * @param {{ loading: string, home: string }} roots
+   * @param {Record<string, Function|object>} componentsDef
+   */
   init({ loading, home }, componentsDef) {
     this.state = {
       componentState: {
@@ -73,14 +83,26 @@ export class ComponentRender {
       components: {},
     };
 
+    const runtime = {
+      navigator: this.m_navigator,
+      logger: this.m_logger,
+    };
+
     for (const componentName in componentsDef) {
-      const componentDef = componentsDef[componentName];
+      const raw = componentsDef[componentName];
+      const componentDef =
+        typeof raw === 'function' ? { type: raw } : raw && typeof raw === 'object' ? raw : null;
+      if (!componentDef?.type) {
+        this.m_logger.e(`Component:'${componentName}' type is missing`);
+        continue;
+      }
+
       this.state.components[componentName] = {
         componentName,
-        isMount: componentDef.isMount,
-        isModal: componentDef.isModal,
-        id: componentDef.id,
-        component: new componentDef.type(this.m_navigator, this.m_logger),
+        isMount: componentDef.isMount ?? false,
+        isModal: componentDef.isModal ?? false,
+        id: componentDef.id ?? componentName,
+        component: new componentDef.type(runtime),
       };
     }
   }
