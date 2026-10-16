@@ -1,8 +1,9 @@
 /**
- * gd5 UI — component library on top of the engine (antd-style primitives + widgets).
+ * gd5 UI — component library on top of the engine.
+ * Catalog aligned with NameThatUI web elements (https://namethatui.com/).
  *
- * Primitives return real-DOM Elements for use inside ensureShell / bind trees.
- * Modal is a Component (overlay lifecycle).
+ * Primitives return real-DOM Elements for ensureShell / bind trees.
+ * Overlay widgets (Modal, Drawer, Toast, Lightbox, CommandPalette) are Components.
  *
  *   import { loadUi, Button, Input, Modal } from '../ui/index.js';
  *   await loadUi();
@@ -13,8 +14,75 @@ export { loadUi, ensureUiStyles, cx } from './util.js';
 export { Button } from './button.js';
 export { Input, TextArea, Select, Field } from './input.js';
 export { Checkbox, Switch, Badge } from './control.js';
+export { Radio, RadioGroup } from './radio.js';
+export { Chip, Pill } from './chip.js';
 export { Space, Divider } from './space.js';
 export { Title, Text } from './typography.js';
+export { Truncate, PasswordInput, OrDivider, SignInForm } from './text-extra.js';
 export { Card } from './card.js';
 export { Tag, Alert, Spin, Empty } from './feedback.js';
+export { Banner, Callout } from './banner.js';
+export { ProgressBar, ProgressRing, Meter } from './progress.js';
+export { Skeleton, SkeletonParagraph } from './skeleton.js';
+export { Avatar, AvatarGroup, StatusDot } from './avatar.js';
+export { Accordion, Collapse } from './accordion.js';
+export { Tabs, ToggleGroup, SegmentedControl } from './tabs.js';
+export { Breadcrumbs } from './breadcrumbs.js';
+export { Steps, QuantityStepper } from './steps.js';
+export { Pagination, PageControl } from './pagination.js';
+export {
+  Navbar,
+  SiteHeader,
+  BottomNav,
+  Sidebar,
+  Toolbar,
+  HamburgerButton,
+  Scrollspy,
+  SplitButton,
+} from './navigation.js';
+export {
+  Scrim,
+  Tooltip,
+  Popover,
+  DropdownMenu,
+  HoverCard,
+  ContextMenu,
+  OverflowMenu,
+} from './overlay.js';
+export {
+  SearchInput,
+  Combobox,
+  TagInput,
+  MultiSelect,
+  Transfer,
+  Slider,
+  ColorWell,
+  DatePicker,
+  TimeField,
+} from './form-extra.js';
+export { Table, DataTable } from './table.js';
+export { Timeline } from './timeline.js';
+export { ChatBubble } from './chat.js';
+export { Carousel } from './carousel.js';
+export {
+  BentoGrid,
+  BentoTile,
+  Masonry,
+  Marquee,
+  Sticky,
+  Fixed,
+  ScrollArea,
+  ResizeHandle,
+  Splitter,
+  SplitView,
+} from './layout-extra.js';
+export { Fab, ChatLauncher, BackToTop } from './float.js';
+export { PieChart, DonutChart } from './chart.js';
+export { Tree, OutlineView, DisclosureTriangle } from './tree.js';
+export { DragHandle, DropZone } from './drag.js';
+
 export { Modal } from './Modal.js';
+export { Drawer, Sheet } from './Drawer.js';
+export { Toast } from './Toast.js';
+export { Lightbox } from './Lightbox.js';
+export { CommandPalette } from './CommandPalette.js';
