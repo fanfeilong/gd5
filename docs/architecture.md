@@ -25,8 +25,10 @@ skills/blocks ──► product（积木数据）
 
 ## 引擎
 
-- `Component`：生命周期 + `setData` / `refresh` + **`mount(host)` / `unmount()`**（页内组合）
-- `ComponentRender`：页面栈 `navigate` / `goBack` / modal
+- `Component`：生命周期 + `setData` / `refresh` + **`mount` / `unmount`**（页面与页内同一套）
+- 降噪：`ensureShell` / `paint`、`on` / `onId`、`ids()`（少手写 clear/bind/监听清理）
+- **样式**：`static styles = new URL('./X.css', import.meta.url)`，`mount` 时 `adoptStyles` 注入一次
+- `ComponentRender`：页面栈走 `component.mount(页槽)`，与子组件一致
 - `D` / `bind` / `map`：实 DOM 组合
 
 产品不得另起一套 View 生命周期绕开 `Component`。
@@ -46,9 +48,11 @@ skills/blocks ──► product（积木数据）
 ```
 src/engine/
 src/product/
-  components/   # 全部为 Component（页面 + 页内）
+  components/   # FooComponent.js + FooComponent.css 旁挂
   nodes/        # 画布 kind
   lib/
-  css/
+  css/          # 仅 tokens.css + base.css（全局）
   main.js
 ```
+
+组件私有样式不进 `css/app.css`；共享控件（`.btn` / `.field`）放 `base.css`。

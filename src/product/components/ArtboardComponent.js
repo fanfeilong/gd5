@@ -1,10 +1,12 @@
-import { Component, D, bind } from '../../engine/index.js';
+import { Component } from '../../engine/index.js';
 import { createNodeElement, syncNodeElement } from '../nodes/index.js';
 
 /**
  * 画布组件：放置 / 拖动 / 选中原型节点。
  */
 export class ArtboardComponent extends Component {
+  static styles = new URL('./ArtboardComponent.css', import.meta.url);
+
   constructor(navigator, logger, { store, getBlock } = {}) {
     super();
     this.navigator = navigator;
@@ -12,29 +14,20 @@ export class ArtboardComponent extends Component {
     this.store = store;
     this.getBlock = getBlock;
     this._dragState = null;
-    this.state = { data: {}, ref: {} };
   }
 
-  async componentDidMount() {}
-
   componentDidUnMount() {
-    const host = this.host();
-    if (host) D.clear(host);
-    this.state.ref = {};
     this._dragState = null;
   }
 
   componentDidAttachEvents() {
-    const artboard = this.state.ref.id?.artboard;
-    const canvas = this.state.ref.id?.canvas;
-    if (!artboard || !canvas) return;
-
-    artboard.addEventListener('dragover', (event) => {
+    const { artboard, canvas } = this.ids();
+    this.on(artboard, 'dragover', (event) => {
       event.preventDefault();
       artboard.classList.add('is-dragover');
     });
-    artboard.addEventListener('dragleave', () => artboard.classList.remove('is-dragover'));
-    artboard.addEventListener('drop', (event) => {
+    this.on(artboard, 'dragleave', () => artboard.classList.remove('is-dragover'));
+    this.on(artboard, 'drop', (event) => {
       event.preventDefault();
       artboard.classList.remove('is-dragover');
       const skillId = event.dataTransfer.getData('application/x-protolive-skill');
@@ -48,36 +41,29 @@ export class ArtboardComponent extends Component {
       });
     });
 
-    canvas.addEventListener('pointerdown', (event) => this._onPointerDown(event, canvas));
-    canvas.addEventListener('pointermove', (event) => this._onPointerMove(event, canvas));
-    canvas.addEventListener('pointerup', () => {
+    this.on(canvas, 'pointerdown', (event) => this._onPointerDown(event, canvas));
+    this.on(canvas, 'pointermove', (event) => this._onPointerMove(event, canvas));
+    this.on(canvas, 'pointerup', () => {
       this._dragState = null;
     });
   }
 
   render() {
-    const host = this.host();
-    if (!host) return;
-
-    // 首次建壳；之后 refresh 只同步节点
-    if (!this.state.ref.id?.canvas) {
-      D.clear(host);
-      const { main, div, get } = bind();
-      main(
-        { className: 'workspace', id: 'workspace' },
-        div(
-          { className: 'artboard-wrap', id: 'artboardWrap' },
+    this.ensureShell(
+      (ids) => ids.canvas,
+      ({ main, div }) => {
+        main(
+          { className: 'workspace', id: 'workspace' },
           div(
-            { className: 'artboard', id: 'artboard', dataset: { dropZone: 'true' } },
-            div({ className: 'canvas', id: 'canvas' })
+            { className: 'artboard-wrap', id: 'artboardWrap' },
+            div(
+              { className: 'artboard', id: 'artboard', dataset: { dropZone: 'true' } },
+              div({ className: 'canvas', id: 'canvas' })
+            )
           )
-        )
-      );
-      const [ref, root] = get();
-      this.state.ref = ref;
-      host.appendChild(root);
-    }
-
+        );
+      }
+    );
     this._syncCanvas();
   }
 
@@ -87,8 +73,7 @@ export class ArtboardComponent extends Component {
 
   _syncCanvas() {
     const { doc, selectedId } = this.store.getState();
-    const artboard = this.state.ref.id?.artboard;
-    const canvas = this.state.ref.id?.canvas;
+    const { artboard, canvas } = this.ids();
     if (!artboard || !canvas) return;
 
     artboard.style.width = `${doc.meta.width}px`;

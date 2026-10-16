@@ -1,9 +1,11 @@
-import { Component, D, bind } from '../../engine/index.js';
+import { Component } from '../../engine/index.js';
 
 /**
  * 积木面板组件：列出 blocks，点击 / 拖放到画布。
  */
 export class PaletteComponent extends Component {
+  static styles = new URL('./PaletteComponent.css', import.meta.url);
+
   constructor(navigator, logger, { store, getBlocks, getBlock } = {}) {
     super();
     this.navigator = navigator;
@@ -11,28 +13,15 @@ export class PaletteComponent extends Component {
     this.store = store;
     this.getBlocks = getBlocks;
     this.getBlock = getBlock;
-    this.state = { data: {}, ref: {} };
-  }
-
-  async componentDidMount() {}
-
-  componentDidUnMount() {
-    const host = this.host();
-    if (host) D.clear(host);
-    this.state.ref = {};
   }
 
   componentDidAttachEvents() {
-    const list = this.state.ref.id?.paletteList;
-    if (!list) return;
-
-    list.addEventListener('click', (event) => {
+    this.onId('paletteList', 'click', (event) => {
       const item = event.target.closest('[data-skill-id]');
       if (!item) return;
       this._addBlock(item.dataset.skillId);
     });
-
-    list.addEventListener('dragstart', (event) => {
+    this.onId('paletteList', 'dragstart', (event) => {
       const item = event.target.closest('[data-skill-id]');
       if (!item) return;
       event.dataTransfer.setData('application/x-protolive-skill', item.dataset.skillId);
@@ -41,42 +30,38 @@ export class PaletteComponent extends Component {
   }
 
   render() {
-    const host = this.host();
-    if (!host) return;
-    D.clear(host);
-
-    const { aside, h2, p, div, button, span, map, get } = bind();
-    aside(
-      { className: 'palette', id: 'palette' },
-      h2({ className: 'panel-title', id: 'paletteTitle', text: '组件' }),
-      p({ className: 'panel-hint', id: 'paletteHint', text: '点击或拖到画布' }),
-      div(
-        { className: 'palette__list', id: 'paletteList' },
-        ...map(
-          this.getBlocks?.() || [],
-          (block, _i, key) =>
-            button(
-              {
-                key,
-                type: 'button',
-                className: 'palette-item',
-                draggable: true,
-                dataset: { skillId: block.id },
-              },
-              span({
-                className: 'palette-item__icon',
-                text: block.icon || block.kind.slice(0, 3).toUpperCase(),
-              }),
-              span({ className: 'palette-item__label', text: block.label })
-            ),
-          (block) => `palette-${block.id}`
-        )
-      )
+    this.ensureShell(
+      (ids) => ids.palette,
+      ({ aside, h2, p, div, button, span, map }) => {
+        aside(
+          { className: 'palette', id: 'palette' },
+          h2({ className: 'panel-title', id: 'paletteTitle', text: '组件' }),
+          p({ className: 'panel-hint', id: 'paletteHint', text: '点击或拖到画布' }),
+          div(
+            { className: 'palette__list', id: 'paletteList' },
+            ...map(
+              this.getBlocks?.() || [],
+              (block, _i, key) =>
+                button(
+                  {
+                    key,
+                    type: 'button',
+                    className: 'palette-item',
+                    draggable: true,
+                    dataset: { skillId: block.id },
+                  },
+                  span({
+                    className: 'palette-item__icon',
+                    text: block.icon || block.kind.slice(0, 3).toUpperCase(),
+                  }),
+                  span({ className: 'palette-item__label', text: block.label })
+                ),
+              (block) => `palette-${block.id}`
+            )
+          )
+        );
+      }
     );
-
-    const [ref, root] = get();
-    this.state.ref = ref;
-    host.appendChild(root);
   }
 
   _addBlock(skillId) {

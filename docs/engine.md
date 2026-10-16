@@ -12,64 +12,109 @@ import {
   Element,
   Log,
   LogEnv,
+  bind,
 } from '../src/engine/index.js';
 ```
 
 ## 生命周期
 
-页面（ComponentRender）：
+页面与页内子组件**共用** `mount` / `unmount`：
 
 ```
-navigate(name)
+ComponentRender.navigate / child.mount(host)
   → componentDidMount(params)
   → render()
   → componentDidAttachEvents()
-  → display:block
 
-goBack()
-  → componentDidUnMount()
-  → display:none
-```
-
-页内组合（同一套 Component，不经导航栈）：
-
-```
-parent.render()  // 建 #host-xxx
-child.mount(host | 'host-id', params)
-  → componentDidMount → render → AttachEvents
-
-child.refresh() / setData()
-child.unmount() → DidUnMount
+goBack / child.unmount()
+  → componentDidUnMount()   // 只做业务清理
+  → 引擎卸 on() 监听、清宿主、重置 ref
 ```
 
 宿主可用 `display: contents`，让子组件根节点直接参与父级布局。
 
-## 刷新（Mount 之后）
+## 写组件时怎么少踩坑
 
-进页后改数据不要再 `navigate` 整页重挂，用：
+| 易错点 | 引擎做法 |
+|--------|----------|
+| 手写 `D.clear` → `bind` → `get` → `append` | `paint(build)` / `ensureShell(probe, build)` |
+| refresh 拆掉壳 → AttachEvents 失效 | `ensureShell`：壳只建一次 |
+| `getElementById` 与 `host()` 两套 | 页面也走 `mount`，统一 `this.host()` |
+| 忘了 `removeEventListener` | `on` / `onId`，unmount 自动卸 |
+| 每个组件手写 `state = { data, ref }` | 基类已提供 |
+| DidUnMount 里再清 DOM | 不必；引擎 teardown 统一清 |
+| 样式堆在全局 `app.css` | 旁挂 `FooComponent.css` + `static styles` |
+
+## 样式与组件同目录
+
+```js
+export class ToolbarComponent extends Component {
+  static styles = new URL('./ToolbarComponent.css', import.meta.url);
+  // …
+}
+```
+
+- `mount` 前会 `adoptStylesFor(this.constructor)`，相同 URL / 文本只注入一次
+- 也可手写：`Component.adoptStyles(urlOrCssText)` / `adoptStylesFor(Ctor)`
+- **全局**：`css/tokens.css`（变量）+ `css/base.css`（reset、页槽、`.btn` / `.field`）
+- **组件私有**：旁挂 `components/FooComponent.css`，不要再写进大一锅 `app.css`
+- unmount **不**移除样式（多实例 / 再挂载共享）
+
+### 推荐骨架
+
+```js
+export class Panel extends Component {
+  componentDidAttachEvents() {
+    this.onId('btnSave', 'click', () => this.save());
+    this.on(window, 'keydown', (e) => { /* … */ });
+  }
+
+  render() {
+    this.ensureShell(
+      (ids) => ids.panel,
+      ({ div, button }) => {
+        div(
+          { className: 'panel', id: 'panel' },
+          button({ id: 'btnSave', type: 'button', text: '保存' })
+        );
+      }
+    );
+    // refresh 路径：只绑 data → ids()
+    const { title } = this.ids();
+    if (title) title.textContent = this.state.data.title;
+  }
+}
+```
+
+## 刷新（Mount 之后）
 
 ```js
 this.setData({ title: '新标题' });     // 合并 state.data 并 refresh()
-this.refresh();                        // 仅再跑 render / 子类覆盖逻辑
+this.refresh();                        // 仅再跑 render / 子类覆盖
 this.navigator.refresh();              // 刷新当前页
 this.navigator.refresh('preview');     // 刷新指定已挂载页
 ```
 
-约定：
+- `AttachEvents` **只在首次 mount**
+- 壳用 `ensureShell`；动态区可局部 `D.clear` 再画（如 Inspector body）
 
-- `AttachEvents` **只在首次 mount** 调用
-- 因此 `render()` 在 refresh 路径上应「有壳则只绑 `state.data` → `state.ref`」，避免 `D.clear` 拆掉已绑事件的节点
-- 若必须整页重建 DOM，请 `override refresh()` 并自行处理事件
+## API 速查
+
+| 方法 | 作用 |
+|------|------|
+| `mount(host, params)` | 挂载（页面 / 子组件） |
+| `unmount()` | 卸载 + 自动清理 |
+| `host()` / `isMounted()` | 宿主与状态 |
+| `ids()` / `keys()` | `state.ref.id` / `key` |
+| `paint(build)` | 整棵重建 |
+| `ensureShell(probe, build)` | 壳只建一次 |
+| `on(target, type, fn)` / `onId(id, type, fn)` | 事件（自动清理） |
+| `static styles` / `adoptStyles` | 旁挂 CSS，mount 注入 |
+| `setData` / `refresh` | 挂载后更新 |
 
 ## D / Element（实 DOM DSL）
 
-产品层应优先用 `D` 拼视图，而不是 `createElement` / `innerHTML`。
-
-### 降噪写法（推荐）
-
 ```js
-import { bind } from '../src/engine/index.js';
-
 const { div, header, h1, button, map, get } = bind();
 
 div({ className: 'app', id: 'appRoot' },
@@ -86,19 +131,13 @@ div({ className: 'app', id: 'appRoot' },
 const [ref, root] = get();
 ```
 
-| 能力 | 用法 |
-|------|------|
-| 尾参 children | `d.div(props, child1, child2)`（仍兼容 `.childList`） |
-| `bind()` / `D.tags()` | 解构短名 + `h(tag, props, ...kids)` |
-| `map(list, render, keyOf)` | 列表自动带 `key` |
-
-### 属性
+在 Component 里优先用 `ensureShell` / `paint`，一般不必自己 `get` + `append`。
 
 | 字段 | 作用 |
 |------|------|
 | `className` | 真实 CSS（可多个） |
 | `id` | DOM id + `ref.id` |
-| `key` | 逻辑索引 → `ref.key`（列表优先交给 `map`） |
+| `key` | 逻辑索引 → `ref.key` |
 | `dataset` / `style` / `attrs` | 数据属性、样式、setAttribute |
 | `text` | innerText |
 
@@ -110,6 +149,6 @@ const [ref, root] = get();
 
 | 属于引擎 | 属于产品 |
 |----------|----------|
-| 导航栈、挂载时序 | 编辑器业务、积木、导出 HTML |
+| 导航栈、挂载时序、paint/on | 编辑器业务、积木、导出 HTML |
 | `D` / `Element` API | 具体面板布局与样式 |
 | `Log` | 原型文档模型 (store) |

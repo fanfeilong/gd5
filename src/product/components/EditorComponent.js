@@ -1,4 +1,4 @@
-import { Component, D, bind } from '../../engine/index.js';
+import { Component } from '../../engine/index.js';
 import { createStore } from '../lib/store.js';
 import { downloadHtml } from '../lib/export.js';
 import { loadSkillBlocks } from '../lib/skills.js';
@@ -9,10 +9,11 @@ import { ArtboardComponent } from './ArtboardComponent.js';
 import { InspectorComponent } from './InspectorComponent.js';
 
 /**
- * 编辑器页 — 组合子 Component：先画宿主槽，再 mount 子组件。
- * 子模块同样走 DidMount / render / AttachEvents / refresh / unmount。
+ * 编辑器页 — 组合子 Component：ensureShell 建宿主槽，再 mount 子组件。
  */
 export class EditorComponent extends Component {
+  static styles = new URL('./EditorComponent.css', import.meta.url);
+
   constructor(navigator, logger) {
     super();
     this.navigator = navigator;
@@ -21,7 +22,7 @@ export class EditorComponent extends Component {
     this.blocks = [];
     this.blocksById = {};
     this._unsub = null;
-    this.state = { data: { ready: false }, ref: {} };
+    this.state.data.ready = false;
 
     const deps = {
       store: this.store,
@@ -59,20 +60,13 @@ export class EditorComponent extends Component {
       this._unsub();
       this._unsub = null;
     }
-    if (this._onKey) {
-      window.removeEventListener('keydown', this._onKey);
-      this._onKey = null;
-    }
     this.children.forEach((child) => child.unmount());
-    D.clear(document.getElementById('editor'));
-    this.state.ref = {};
   }
 
   componentDidAttachEvents() {
-    // 宿主已在 render 中建好 → 挂载子 Component
     void this._mountChildren();
 
-    this._onKey = (event) => {
+    this.on(window, 'keydown', (event) => {
       const meta = event.metaKey || event.ctrlKey;
       if (meta && event.key.toLowerCase() === 'z' && !event.shiftKey) {
         event.preventDefault();
@@ -94,8 +88,7 @@ export class EditorComponent extends Component {
           this.store.removeNode(selected.id);
         }
       }
-    };
-    window.addEventListener('keydown', this._onKey);
+    });
   }
 
   async _mountChildren() {
@@ -109,22 +102,19 @@ export class EditorComponent extends Component {
   }
 
   render() {
-    const host = document.getElementById('editor');
-    D.clear(host);
-
-    const { div, get } = bind();
-    // display:contents 宿主：子 Component 根节点直接参与 .app 网格
-    div(
-      { className: 'app', id: 'appRoot' },
-      div({ id: 'host-toolbar', className: 'component-host' }),
-      div({ id: 'host-palette', className: 'component-host' }),
-      div({ id: 'host-artboard', className: 'component-host' }),
-      div({ id: 'host-inspector', className: 'component-host' })
+    this.ensureShell(
+      (ids) => ids.appRoot,
+      ({ div }) => {
+        // display:contents 宿主：子 Component 根节点直接参与 .app 网格
+        div(
+          { className: 'app', id: 'appRoot' },
+          div({ id: 'host-toolbar', className: 'component-host' }),
+          div({ id: 'host-palette', className: 'component-host' }),
+          div({ id: 'host-artboard', className: 'component-host' }),
+          div({ id: 'host-inspector', className: 'component-host' })
+        );
+      }
     );
-
-    const [ref, root] = get();
-    this.state.ref = ref;
-    host.appendChild(root);
   }
 }
 

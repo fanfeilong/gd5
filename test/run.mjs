@@ -3,7 +3,19 @@
  * Run: node test/run.mjs
  */
 
-import { Log, LogEnv, Component, ComponentRender, D, Element, bind } from '../src/engine/index.js';
+import {
+  Log,
+  LogEnv,
+  Component,
+  ComponentRender,
+  D,
+  Element,
+  bind,
+  adoptStyles,
+  adoptStylesFor,
+  adoptedStyleKeys,
+  resetAdoptedStyles,
+} from '../src/engine/index.js';
 import { createStore, DEFAULT_DOC } from '../src/product/lib/store.js';
 import { documentToHtml, escapeHtml, renderNodeHtml } from '../src/product/lib/export.js';
 import { FALLBACK_BLOCKS } from '../src/product/lib/skills.js';
@@ -52,11 +64,22 @@ section('layout: product vs engine');
     'src/product/nodes/button.js',
     'docs/architecture.md',
     'skills/engine/README.md',
+    'src/engine/styles.js',
+    'src/product/css/tokens.css',
+    'src/product/css/base.css',
+    'src/product/components/ToolbarComponent.css',
+    'src/product/components/PaletteComponent.css',
+    'src/product/components/ArtboardComponent.css',
+    'src/product/components/InspectorComponent.css',
+    'src/product/components/EditorComponent.css',
+    'src/product/components/PreviewComponent.css',
+    'src/product/components/BootComponent.css',
   ]) {
     assert(existsSync(join(root, path)), `${path} exists`);
   }
   assert(!existsSync(join(root, 'src/js')), 'legacy src/js removed');
   assert(!existsSync(join(root, 'src/product/views')), 'ad-hoc views/ removed');
+  assert(!existsSync(join(root, 'src/product/css/app.css')), 'monolithic app.css removed');
   assert(!existsSync(join(root, 'index.py')), 'Flask entry removed');
 }
 
@@ -219,7 +242,7 @@ section('engine: Component.mount composition');
       this.unmounts = 0;
       this.renders = 0;
       this.attaches = 0;
-      this.state = { data: { n: 0 }, ref: {} };
+      this.state.data.n = 0;
     }
     async componentDidMount() {
       this.mounts += 1;
@@ -236,7 +259,7 @@ section('engine: Component.mount composition');
   }
 
   const child = new Child();
-  const hostEl = { id: 'host-x' };
+  const hostEl = { id: 'host-x', firstChild: null, removeChild() {} };
   await child.mount(hostEl);
   assert(child.isMounted() && child.host() === hostEl, 'mount sets host');
   assert(child.mounts === 1 && child.renders === 1 && child.attaches === 1, 'mount runs full lifecycle');
@@ -244,6 +267,163 @@ section('engine: Component.mount composition');
   assert(child.renders === 2 && child.attaches === 1, 'setData refresh skips AttachEvents');
   child.unmount();
   assert(!child.isMounted() && child.unmounts === 1, 'unmount runs DidUnMount');
+}
+
+section('engine: paint / ensureShell / on');
+{
+  const listeners = new Map();
+  function makeEl(id) {
+    return {
+      id,
+      children: [],
+      firstChild: null,
+      style: {},
+      dataset: {},
+      appendChild(child) {
+        this.children.push(child);
+        this.firstChild = this.children[0] || null;
+      },
+      removeChild(child) {
+        this.children = this.children.filter((c) => c !== child);
+        this.firstChild = this.children[0] || null;
+      },
+      addEventListener(type, handler) {
+        const key = `${type}`;
+        if (!listeners.has(this)) listeners.set(this, []);
+        listeners.get(this).push({ type, handler });
+      },
+      removeEventListener(type, handler) {
+        const list = listeners.get(this) || [];
+        listeners.set(
+          this,
+          list.filter((l) => !(l.type === type && l.handler === handler))
+        );
+      },
+    };
+  }
+
+  globalThis.document = {
+    createElement(tag) {
+      return makeEl(tag);
+    },
+    createTextNode(text) {
+      return { nodeType: 3, textContent: String(text) };
+    },
+    getElementById() {
+      return null;
+    },
+  };
+
+  class Panel extends Component {
+    constructor() {
+      super();
+      this.clicks = 0;
+    }
+    componentDidAttachEvents() {
+      this.onId('btn', 'click', () => {
+        this.clicks += 1;
+      });
+    }
+    render() {
+      this.ensureShell(
+        (ids) => ids.panel,
+        ({ div, button }) => {
+          div(
+            { className: 'panel', id: 'panel' },
+            button({ id: 'btn', type: 'button', text: 'Go' })
+          );
+        }
+      );
+    }
+  }
+
+  const host = makeEl('host');
+  const panel = new Panel();
+  await panel.mount(host);
+  assert(!!panel.ids().panel && !!panel.ids().btn, 'paint/ensureShell indexes ids');
+  assert(host.children.length === 1, 'paint appends root once');
+
+  panel.refresh();
+  assert(host.children.length === 1, 'ensureShell skips rebuild on refresh');
+
+  const btn = panel.ids().btn;
+  const click = listeners.get(btn)?.find((l) => l.type === 'click');
+  assert(!!click, 'onId registered listener');
+  click.handler();
+  assert(panel.clicks === 1, 'onId handler runs');
+
+  panel.unmount();
+  assert((listeners.get(btn) || []).length === 0, 'unmount removes listeners');
+  assert(host.children.length === 0, 'unmount clears host');
+  assert(Object.keys(panel.ids()).length === 0, 'unmount resets ref');
+}
+
+section('product: component ergonomics');
+{
+  const toolbarSrc = readFileSync(join(root, 'src/product/components/ToolbarComponent.js'), 'utf8');
+  const editorSrc = readFileSync(join(root, 'src/product/components/EditorComponent.js'), 'utf8');
+  assert(toolbarSrc.includes('ensureShell'), 'Toolbar uses ensureShell');
+  assert(toolbarSrc.includes('onId'), 'Toolbar uses onId');
+  assert(!toolbarSrc.includes('D.clear'), 'Toolbar does not hand-clear host');
+  assert(editorSrc.includes('ensureShell') && editorSrc.includes("this.on(window"), 'Editor uses ensureShell + on(window)');
+  assert(toolbarSrc.includes('static styles'), 'Toolbar declares static styles');
+  assert(editorSrc.includes('EditorComponent.css'), 'Editor styles co-located');
+}
+
+section('engine: adoptStyles');
+{
+  resetAdoptedStyles();
+  const headKids = [];
+  globalThis.document = {
+    head: {
+      appendChild(el) {
+        headKids.push(el);
+        if (el.tagName === 'LINK' && typeof el.onload === 'function') {
+          queueMicrotask(() => el.onload());
+        }
+      },
+    },
+    createElement(tag) {
+      return {
+        tagName: tag.toUpperCase(),
+        dataset: {},
+        rel: '',
+        href: '',
+        textContent: '',
+        onload: null,
+        onerror: null,
+      };
+    },
+  };
+
+  await adoptStyles('.x { color: red }', 'text-x');
+  assert(headKids.some((el) => el.tagName === 'STYLE' && el.textContent.includes('color: red')), 'adoptStyles injects style text');
+  const before = headKids.length;
+  await adoptStyles('.x { color: red }', 'text-x');
+  assert(headKids.length === before, 'adoptStyles dedupes by key');
+  assert(adoptedStyleKeys().includes('text-x'), 'adoptedStyleKeys lists keys');
+
+  class Styled extends Component {
+    static styles = '.panel { display: block }';
+  }
+  await adoptStylesFor(Styled);
+  assert(
+    headKids.some((el) => el.tagName === 'STYLE' && el.textContent.includes('display: block')),
+    'adoptStylesFor reads static styles'
+  );
+
+  class Linked extends Component {
+    static styles = new URL('http://example.test/panel.css');
+    render() {}
+  }
+  const host = { id: 'h', firstChild: null, removeChild() {}, appendChild() {} };
+  const linked = new Linked();
+  await linked.mount(host);
+  assert(
+    headKids.some((el) => el.tagName === 'LINK' && el.href.includes('panel.css')),
+    'mount adopts URL stylesheet'
+  );
+  resetAdoptedStyles();
 }
 
 section('engine: D / Element');

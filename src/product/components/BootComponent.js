@@ -1,46 +1,34 @@
-import { Component, D, bind } from '../../engine/index.js';
+import { Component } from '../../engine/index.js';
 
 /**
- * 启动页（产品）— loading 槽；bind 短名建壳。
+ * 启动页（产品）— loading 槽。
  */
 export class BootComponent extends Component {
+  static styles = new URL('./BootComponent.css', import.meta.url);
+
   constructor(navigator, logger) {
     super();
     this.navigator = navigator;
     this.logger = logger;
-    this.state = {
-      data: {
-        message: 'ProtoLive Engine starting…',
-      },
-      ref: {},
-    };
+    this.state.data.message = 'ProtoLive Engine starting…';
   }
 
   async componentDidMount() {
     this.logger.i('BootComponent mounted');
   }
 
-  componentDidUnMount() {
-    D.clear(document.getElementById('boot'));
-    this.state.ref = {};
-  }
-
-  componentDidAttachEvents() {}
-
   render() {
-    const host = document.getElementById('boot');
-    const messageEl = this.state.ref.class?.['boot-message'];
-
-    if (!messageEl) {
-      D.clear(host);
-      const { div, get } = bind();
-      div({ className: 'boot-message', text: this.state.data.message });
-      const [ref, root] = get();
-      this.state.ref = ref;
-      host.appendChild(root);
-      return;
-    }
-
-    messageEl.textContent = this.state.data.message;
+    this.ensureShell(
+      (ids) => ids.bootMessage,
+      ({ div }) => {
+        div({
+          className: 'boot-message',
+          id: 'bootMessage',
+          text: this.state.data.message,
+        });
+      }
+    );
+    const el = this.ids().bootMessage;
+    if (el) el.textContent = this.state.data.message;
   }
 }
