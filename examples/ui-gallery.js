@@ -115,6 +115,9 @@ import {
   Toast,
   Lightbox,
   CommandPalette,
+  themes,
+  setTheme,
+  getTheme,
 } from '../src/ui/index.js';
 
 class GalleryPage extends Component {
@@ -160,6 +163,7 @@ class GalleryPage extends Component {
       menuOpen: ['sub'],
       popconfirmOpen: false,
       anchorKey: 'antd',
+      theme: 'orange',
     };
     this.modal = new Modal({});
     this.drawer = new Drawer({});
@@ -171,6 +175,9 @@ class GalleryPage extends Component {
 
   async componentDidMount() {
     await loadUi();
+    const theme = getTheme() || 'orange';
+    setTheme(theme);
+    this.setData({ theme }, { refresh: false });
     await this.modal.mount();
     await this.drawer.mount();
     await this.toast.mount();
@@ -199,14 +206,49 @@ class GalleryPage extends Component {
           { id: 'galleryRoot' },
           Banner({
             type: 'info',
-            message: 'gd5 UI covers NameThatUI web elements — orange primary, white panels.',
+            message: 'gd5 UI — NameThatUI + Ant Design coverage. White panels; accent theme is selectable.',
             closable: false,
           }),
           Title({ level: 1, text: 'gd5 UI' }),
           Text({
             type: 'secondary',
-            text: 'Component library aligned with namethatui.com web catalog.',
+            text: 'Component library aligned with namethatui.com and Ant Design. Themes: orange / blue / green.',
           }),
+          Card(
+            { title: 'Theme', style: { marginTop: '24px' } },
+            Space(
+              { direction: 'vertical', size: 'md' },
+              Text({
+                type: 'secondary',
+                text: 'Call setTheme("blue") or wrap with ConfigProvider({ theme: "green" }). Default is orange.',
+              }),
+              ToggleGroup({
+                value: d.theme,
+                onChange: (theme) => {
+                  setTheme(theme);
+                  // Full-page ensureShell skips rebuild; clear ref so theme UI repaints.
+                  this.state.ref = {};
+                  this.setData({ theme });
+                },
+                options: Object.keys(themes).map((key) => ({
+                  value: key,
+                  label: themes[key].label,
+                })),
+              }),
+              Text({
+                type: 'secondary',
+                text: `Active: ${themes[d.theme]?.label || d.theme} · primary ${themes[d.theme]?.primary || ''}`,
+              }),
+              Space(
+                {},
+                Button({ type: 'primary', text: 'Primary' }),
+                Button({ type: 'default', text: 'Default' }),
+                Button({ type: 'ghost', text: 'Ghost' }),
+                Tag({ color: 'primary', text: 'Primary tag' }),
+                Switch({ checked: true })
+              )
+            )
+          ),
 
           this.section(
             'Header / Navbar / Toolbar',
@@ -873,9 +915,24 @@ class GalleryPage extends Component {
                   Button({ type: 'primary', text: 'Submit', htmlType: 'submit' })
                 )
               ),
-              ConfigProvider(
-                { theme: { token: { primary: '#e86a17' } } },
-                Text({ type: 'secondary', text: 'ConfigProvider wraps theme tokens on a subtree.' })
+              Flex(
+                { gap: 12, wrap: true },
+                ConfigProvider(
+                  { theme: 'blue', style: { padding: '12px', border: '1px solid var(--gd-border)', borderRadius: '8px', background: 'var(--gd-bg-elevated)' } },
+                  Space(
+                    { direction: 'vertical', size: 'sm' },
+                    Text({ text: 'Scoped blue' }),
+                    Button({ type: 'primary', size: 'sm', text: 'Blue primary' })
+                  )
+                ),
+                ConfigProvider(
+                  { theme: 'green', style: { padding: '12px', border: '1px solid var(--gd-border)', borderRadius: '8px', background: 'var(--gd-bg-elevated)' } },
+                  Space(
+                    { direction: 'vertical', size: 'sm' },
+                    Text({ text: 'Scoped green' }),
+                    Button({ type: 'primary', size: 'sm', text: 'Green primary' })
+                  )
+                )
               )
             )
           ),

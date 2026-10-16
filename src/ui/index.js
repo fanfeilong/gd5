@@ -10,6 +10,14 @@
  */
 
 export { loadUi, ensureUiStyles, cx } from './util.js';
+export {
+  themes,
+  setTheme,
+  getTheme,
+  isThemeName,
+  resolveThemeInput,
+  THEME_ATTR,
+} from './theme.js';
 
 export { Button } from './button.js';
 export { Input, TextArea, Select, Field } from './input.js';

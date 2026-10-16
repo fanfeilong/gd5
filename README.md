@@ -69,7 +69,22 @@ Optional later: publish an IIFE/UMD bundle for a global `gd5` if you want a sing
 Button({ type: 'primary', text: 'Save', onClick: () => this.save() })
 ```
 
-Default palette is **orange primary + white panels** on a soft warm page. Override `--gd-primary` / `--gd-bg*` as needed. Full catalog: [`docs/ui.md`](docs/ui.md). Live gallery: [`examples/ui-gallery.html`](examples/ui-gallery.html).
+Default palette is **orange primary + white panels**. Themes are selectable: **`orange` / `blue` / `green`**.
+
+```js
+import { setTheme, ConfigProvider, Button } from './src/ui/index.js';
+
+setTheme('blue'); // document-wide
+ConfigProvider({ theme: 'green' }, Button({ type: 'primary', text: 'Green' }));
+```
+
+Full catalog: [`docs/ui.md`](docs/ui.md). Live gallery: [`examples/ui-gallery.html`](examples/ui-gallery.html).
+
+### Theme previews
+
+| Orange (default) | Blue | Green |
+|------------------|------|-------|
+| ![Orange theme](docs/images/theme-orange.png) | ![Blue theme](docs/images/theme-blue.png) | ![Green theme](docs/images/theme-green.png) |
 
 ![gd5 UI gallery — orange primary, white panels](docs/images/ui-gallery.png)
 
@@ -288,7 +303,7 @@ MIT
 
 ## 中文
 
-**gd5** = **引擎**（迷你实 DOM 运行时）+ **组件库**（`src/ui/`，对标 antd；默认**橙色主色 + 白色面板**）。`src/product/` 只是示例应用。
+**gd5** = **引擎**（迷你实 DOM 运行时）+ **组件库**（`src/ui/`，对标 antd；**白面板**，主题可选 **橙 / 蓝 / 绿**）。`src/product/` 只是示例应用。
 
 ### 怎么用
 
@@ -300,7 +315,11 @@ MIT
 </script>
 ```
 
-静态服务器打开即可。画廊：[`examples/ui-gallery.html`](examples/ui-gallery.html)。
+静态服务器打开即可。画廊：[`examples/ui-gallery.html`](examples/ui-gallery.html)。主题：`setTheme('blue'|'green'|'orange')`。
+
+| 橙（默认） | 蓝 | 绿 |
+|------------|----|----|
+| ![橙](docs/images/theme-orange.png) | ![蓝](docs/images/theme-blue.png) | ![绿](docs/images/theme-green.png) |
 
 ![gd5 UI 画廊效果](docs/images/ui-gallery.png)
 
