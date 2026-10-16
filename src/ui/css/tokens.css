@@ -1,0 +1,46 @@
+/**
+ * gd5 UI kit tokens — default: orange / light-orange theme.
+ * Override any --gd-* on :root to retheme.
+ */
+:root {
+  --gd-font: "Segoe UI", "PingFang SC", "Hiragino Sans GB", sans-serif;
+  --gd-font-mono: "SF Mono", "Cascadia Code", "Consolas", monospace;
+
+  /* Light orange surfaces */
+  --gd-bg: #fff8f1;
+  --gd-bg-elevated: #ffffff;
+  --gd-bg-container: #fff3e8;
+  --gd-bg-spotlight: #ffe4cc;
+
+  /* Ink on warm paper */
+  --gd-text: #2a1a10;
+  --gd-text-secondary: #6b4a36;
+  --gd-text-muted: #9a7460;
+  --gd-text-inverse: #fffaf5;
+
+  /* Orange primary */
+  --gd-primary: #e86a17;
+  --gd-primary-hover: #f07a2a;
+  --gd-primary-active: #c95510;
+  --gd-primary-soft: rgba(232, 106, 23, 0.14);
+
+  --gd-danger: #d14343;
+  --gd-danger-soft: rgba(209, 67, 67, 0.12);
+  --gd-warning: #d4890a;
+  --gd-success: #2f8f5b;
+  --gd-info: #2f6fed;
+
+  --gd-border: #f0d2b8;
+  --gd-border-strong: #e0b48e;
+
+  --gd-radius-sm: 4px;
+  --gd-radius: 8px;
+  --gd-radius-lg: 12px;
+
+  --gd-shadow: 0 10px 28px rgba(120, 60, 20, 0.12);
+  --gd-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --gd-control-h-sm: 28px;
+  --gd-control-h: 32px;
+  --gd-control-h-lg: 40px;
+}

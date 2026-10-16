@@ -1,6 +1,6 @@
 # gd5 Engine API Reference
 
-Canonical list of **what you can call**. For narrative guides see [`engine.md`](./engine.md) and the [README](../README.md).
+Canonical list of **what you can call** on the **engine**. For the UI kit (Button / Modal / …) see [`ui.md`](./ui.md). Narrative guides: [`engine.md`](./engine.md), [README](../README.md).
 
 Import surface:
 
