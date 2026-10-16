@@ -78,22 +78,24 @@ export class ToolbarComponent extends Component {
 - `mount` 前会 `adoptStylesFor(this.constructor)`，相同 URL / 文本只注入一次
 - **全局**：`css/tokens.css` + `css/base.css`；**组件私有**旁挂 CSS
 
-### navigator / logger：少写，但默认有
+### navigator / logger：页面默认有，子组件不必背
 
-- 页面：`ComponentRender.init` 构造时注入 `{ navigator, logger }` → 直接 `this.navigator`
-- 子组件：`this.spawn(Child, { store })` 自动带上父级 runtime（不必再传 nav/logger）
+- **页面**：`ComponentRender.init` 注入 → `this.navigator` / `this.logger`
+- **子组件**：照旧 `new Child({ store, … })`，**没有**额外组合 API
+- 子组件若要跳转：父页面传回调（如 `onPreview`），页面里再 `this.navigator.navigate(…)`
 - 注册简写：`home: HomePage`；默认 `id = name`、`isMount = false`、`isModal = false`
 
 ```js
-// main
 app.init({ loading: 'home', home: 'home' }, {
   home: HomePage,
   preview: { type: PreviewPage, isModal: true },
 });
 
-// 父组件
-this.toolbar = this.spawn(Toolbar, { store: this.store });
-// Toolbar 内：this.navigator.navigate('preview', { doc })
+// 页面内组合（与原来一样）
+this.toolbar = new Toolbar({
+  store: this.store,
+  onPreview: () => this.navigator.navigate('preview', { doc }),
+});
 ```
 
 ### 推荐骨架

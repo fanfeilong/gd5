@@ -9,7 +9,7 @@ import { ArtboardComponent } from './ArtboardComponent.js';
 import { InspectorComponent } from './InspectorComponent.js';
 
 /**
- * 编辑器页 — spawn 子组件时自动带上 navigator / logger。
+ * 编辑器页 — 子组件仍是 new Child(业务 deps)；导航留在页面（this.navigator 默认有）。
  */
 export class EditorComponent extends Component {
   static styles = new URL('./EditorComponent.css', import.meta.url);
@@ -30,12 +30,16 @@ export class EditorComponent extends Component {
         const { doc } = this.store.getState();
         downloadHtml(doc, `${slugify(doc.meta.name)}.html`);
       },
+      onPreview: () => {
+        const { doc } = this.store.getState();
+        this.navigator.navigate('preview', { doc });
+      },
     };
 
-    this.toolbar = this.spawn(ToolbarComponent, panelDeps);
-    this.palette = this.spawn(PaletteComponent, panelDeps);
-    this.artboard = this.spawn(ArtboardComponent, panelDeps);
-    this.inspector = this.spawn(InspectorComponent, panelDeps);
+    this.toolbar = new ToolbarComponent(panelDeps);
+    this.palette = new PaletteComponent(panelDeps);
+    this.artboard = new ArtboardComponent(panelDeps);
+    this.inspector = new InspectorComponent(panelDeps);
     this.children = [this.toolbar, this.palette, this.artboard, this.inspector];
   }
 

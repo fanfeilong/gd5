@@ -230,23 +230,6 @@ section('engine: setData / refresh');
   assert(page.state.data.label === 'c' && page.renderCount === 3, 'setData can skip refresh');
 }
 
-section('engine: spawn inherits navigator');
-{
-  class Parent extends Component {}
-  class Child extends Component {
-    constructor(deps) {
-      super(deps);
-      this.store = deps.store;
-    }
-  }
-  const nav = { navigate() {} };
-  const log = { i() {} };
-  const parent = new Parent({ navigator: nav, logger: log });
-  const child = parent.spawn(Child, { store: { id: 1 } });
-  assert(child.navigator === nav && child.logger === log, 'spawn forwards navigator/logger');
-  assert(child.store.id === 1, 'spawn merges business deps');
-}
-
 section('engine: Component.mount composition');
 {
   class Child extends Component {
@@ -384,7 +367,9 @@ section('product: component ergonomics');
   assert(editorSrc.includes('ensureShell') && editorSrc.includes("this.on(window"), 'Editor uses ensureShell + on(window)');
   assert(toolbarSrc.includes('static styles'), 'Toolbar declares static styles');
   assert(editorSrc.includes('EditorComponent.css'), 'Editor styles co-located');
-  assert(editorSrc.includes('this.spawn('), 'Editor spawn children for default navigator');
+  assert(editorSrc.includes('new ToolbarComponent'), 'Editor composes with new Child(deps)');
+  assert(editorSrc.includes('onPreview'), 'Editor owns navigation via onPreview callback');
+  assert(!toolbarSrc.includes('this.navigator'), 'Toolbar does not touch navigator');
   assert(!toolbarSrc.includes('constructor(navigator'), 'Toolbar no positional navigator ctor');
   const mainSrc = readFileSync(join(root, 'src/product/main.js'), 'utf8');
   assert(mainSrc.includes('boot: BootComponent'), 'main uses init shorthand');

@@ -97,7 +97,7 @@ export class HomePage extends Component {
 
 ### 3. Wire navigation
 
-Pages receive `navigator` / `logger` **by default** (no manual wiring). Children inherit via `this.spawn(Child, deps)`.
+Pages receive `navigator` / `logger` **by default**. Nested panels stay plain `new Child(deps)` — no extra composition API. If a child needs navigation, the **page** passes a callback.
 
 ```js
 import { ComponentRender, LogEnv } from './src/engine/index.js';
@@ -116,8 +116,13 @@ app.init(
 window.addEventListener('DOMContentLoaded', () => app.render());
 ```
 
-Inside a page: `this.navigator.navigate('settings')`.  
-Compose children: `this.panel = this.spawn(Panel, { store })` — child gets the same `navigator` / `logger`.
+```js
+// page (has this.navigator by default)
+this.toolbar = new ToolbarComponent({
+  store: this.store,
+  onPreview: () => this.navigator.navigate('preview', { doc: this.store.getState().doc }),
+});
+```
 
 ---
 
@@ -139,13 +144,13 @@ unmount / goBack
 
 ### Authoring checklist
 
-1. `extends Component` — `state`, and (when registered / spawned) `this.navigator` / `this.logger`.
+1. `extends Component` — `state`; **pages** also get `this.navigator` / `this.logger` from `init`.
 2. Co-locate CSS: `static styles = new URL('./X.css', import.meta.url)`.
 3. Build UI with `ensureShell` / `paint` + `bind` helpers — not hand-rolled `createElement` trees.
 4. Put DOM handlers in props: `onClick`, `onChange`, `onPointerDown`, … (or `events: { click: fn }`).
 5. Use `this.on(window, 'keydown', …)` only for non-tree targets.
 6. After mount, update with `setData` / `refresh` — do not re-`navigate` to refresh.
-7. Nest UI with `this.spawn(Child, deps)` so runtime context is inherited without re-passing.
+7. Nest with `new Child({ …business deps })`; keep page-stack calls on the page (or pass callbacks).
 
 ### Composition
 
@@ -268,7 +273,7 @@ MIT
 ### 开发者要点
 
 - 页面与页内子组件共用 `mount` / `unmount`
-- **`this.navigator` / `this.logger` 默认注入**；子组件用 `this.spawn(Child, deps)` 继承，不必手传
+- **页面**默认有 `this.navigator` / `this.logger`；**子组件**仍 `new Child(业务deps)`，导航用回调交给页面
 - 注册可简写：`home: HomePage`（默认 `id=name`）
 - UI：`ensureShell` + `bind`；事件写在 props（`onClick`…）；`window` 用 `this.on`
 - 样式：`static styles = new URL('./X.css', import.meta.url)`，与组件同目录
