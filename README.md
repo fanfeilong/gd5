@@ -300,7 +300,9 @@ MIT
 </script>
 ```
 
-静态服务器打开即可。画廊：`examples/ui-gallery.html`。
+静态服务器打开即可。画廊：[`examples/ui-gallery.html`](examples/ui-gallery.html)。
+
+![gd5 UI 画廊效果](docs/images/ui-gallery.png)
 
 ### 开发者要点
 
