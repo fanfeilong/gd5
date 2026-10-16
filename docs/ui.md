@@ -2,7 +2,7 @@
 
 Ant Design–style **UI kit on top of the engine**. Prefer these over raw `div` + one-off CSS for common chrome.
 
-**Default theme:** orange primary on a **light-orange** surface (`--gd-*` in `src/ui/css/tokens.css`).
+**Default theme:** orange primary, **white panels**, soft warm page (`--gd-*` in `src/ui/css/tokens.css`).
 
 ```
 Engine (runtime)     →  src/engine/
@@ -80,21 +80,21 @@ modal.open({
 
 ## Theming
 
-Default is orange / light-orange. Override on `:root`:
+Default is orange primary with white panels. Override on `:root`:
 
 ```css
 :root {
   --gd-primary: #e86a17;
-  --gd-bg: #fff8f1;
-  --gd-bg-container: #fff3e8;
-  --gd-primary-soft: rgba(232, 106, 23, 0.14);
+  --gd-bg: #f7f4f0;
+  --gd-bg-elevated: #ffffff;
+  --gd-bg-container: #ffffff;
 }
 ```
 
 ## 中文
 
 - 引擎 = 运行时；**组件库** = `src/ui/`（对标 antd 常用件）
-- **默认配色：橙色主色 + 浅橙背景**
+- **默认配色：橙色主色 + 白色面板 + 浅暖灰页面底**
 - 基础件是函数，返回实 DOM，可放进 `ensureShell`
 - `Modal` 是 `Component`
 - 画廊：`examples/ui-gallery.html`
