@@ -69,7 +69,13 @@ Optional later: publish an IIFE/UMD bundle for a global `gd5` if you want a sing
 Button({ type: 'primary', text: 'Save', onClick: () => this.save() })
 ```
 
-Default palette is **orange primary + white panels** on a soft warm page. Override `--gd-primary` / `--gd-bg*` as needed. Full catalog: [`docs/ui.md`](docs/ui.md). Preview: `examples/ui-gallery.html`.
+Default palette is **orange primary + white panels** on a soft warm page. Override `--gd-primary` / `--gd-bg*` as needed. Full catalog: [`docs/ui.md`](docs/ui.md). Live gallery: [`examples/ui-gallery.html`](examples/ui-gallery.html).
+
+![gd5 UI gallery — orange primary, white panels](docs/images/ui-gallery.png)
+
+![gd5 UI gallery — form controls](docs/images/ui-gallery-forms.png)
+
+![gd5 UI Modal](docs/images/ui-gallery-modal.png)
 
 ---
 
