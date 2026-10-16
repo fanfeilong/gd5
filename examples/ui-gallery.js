@@ -226,6 +226,8 @@ class GalleryPage extends Component {
                 value: d.theme,
                 onChange: (theme) => {
                   setTheme(theme);
+                  // Full-page ensureShell skips rebuild; clear ref so theme UI repaints.
+                  this.state.ref = {};
                   this.setData({ theme });
                 },
                 options: Object.keys(themes).map((key) => ({
