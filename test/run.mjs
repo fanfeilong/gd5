@@ -71,9 +71,16 @@ section('layout: product vs engine');
     'src/ui/button.js',
     'src/ui/control.js',
     'src/ui/Modal.js',
+    'src/ui/Drawer.js',
+    'src/ui/Toast.js',
+    'src/ui/accordion.js',
+    'src/ui/tabs.js',
+    'src/ui/table.js',
+    'src/ui/CommandPalette.js',
     'src/ui/css/ui.css',
     'src/ui/css/tokens.css',
     'src/ui/css/control.css',
+    'src/ui/css/extra.css',
     'examples/ui-gallery.html',
     'examples/ui-gallery.js',
     'src/engine/styles.js',
@@ -666,9 +673,47 @@ section('ui kit');
   assert(tokens.includes('--gd-bg-container: #ffffff') || tokens.includes('--gd-bg-elevated: #ffffff'), 'panels default to white');
   assert(tokens.includes('#f7f4f0') || tokens.includes('--gd-bg:'), 'warm page background token present');
 
-  const { Button, cx, Space, Card, Checkbox, Switch, Badge } = await import('../src/ui/index.js');
+  const ui = await import('../src/ui/index.js');
+  const {
+    Button,
+    cx,
+    Space,
+    Card,
+    Checkbox,
+    Switch,
+    Badge,
+    Tabs,
+    Accordion,
+    Breadcrumbs,
+    Drawer,
+    Toast,
+    CommandPalette,
+    Table,
+    Tree,
+    ProgressBar,
+  } = ui;
   assert(typeof Button === 'function' && typeof Space === 'function', 'UI primitives exported');
   assert(typeof Checkbox === 'function' && typeof Switch === 'function' && typeof Badge === 'function', 'control primitives exported');
+  assert(typeof Tabs === 'function' && typeof Accordion === 'function', 'Tabs/Accordion exported');
+  assert(typeof Drawer === 'function' && typeof Toast === 'function', 'Drawer/Toast components exported');
+  assert(typeof CommandPalette === 'function', 'CommandPalette exported');
+  assert(typeof Table === 'function' && typeof Tree === 'function', 'Table/Tree exported');
+  assert(typeof ProgressBar === 'function', 'ProgressBar exported');
+
+  const namedExports = [
+    'Radio', 'Chip', 'Pill', 'Banner', 'Callout', 'Skeleton', 'Avatar', 'AvatarGroup',
+    'StatusDot', 'Collapse', 'ToggleGroup', 'Steps', 'Pagination', 'Navbar', 'SiteHeader',
+    'BottomNav', 'Sidebar', 'Toolbar', 'Tooltip', 'Popover', 'DropdownMenu', 'HoverCard',
+    'Combobox', 'TagInput', 'MultiSelect', 'Transfer', 'Slider', 'ColorWell', 'DatePicker',
+    'Timeline', 'ChatBubble', 'Carousel', 'BentoGrid', 'Marquee', 'Fab', 'Lightbox',
+    'PieChart', 'DonutChart', 'SearchInput', 'SignInForm', 'Truncate', 'Splitter',
+  ];
+  for (const name of namedExports) {
+    assert(typeof ui[name] === 'function', `export ${name}`);
+  }
+
+  const docs = readFileSync(join(root, 'docs/ui.md'), 'utf8');
+  assert(docs.includes('namethatui.com') || docs.includes('NameThatUI'), 'docs reference NameThatUI');
 
   const listeners = [];
   globalThis.document = {
@@ -689,6 +734,9 @@ section('ui kit');
           listeners.push({ type, handler });
         },
       };
+    },
+    createElementNS(_ns, tag) {
+      return globalThis.document.createElement(tag);
     },
     createTextNode(text) {
       return { nodeType: 3, textContent: String(text) };
@@ -732,6 +780,14 @@ section('ui kit');
   const modalSrc = readFileSync(join(root, 'src/ui/Modal.js'), 'utf8');
   assert(modalSrc.includes('gd-modal-portal'), 'Modal mounts via portal (avoids clearing body)');
   assert(modalSrc.includes('super.mount(this._portal'), 'Modal delegates mount to portal host');
+
+  const crumbs = Breadcrumbs({
+    items: [{ label: 'Home' }, { label: 'UI' }, { label: 'Here' }],
+  });
+  assert(crumbs.e.className.includes('gd-breadcrumb'), 'Breadcrumbs root class');
+
+  const bar = ProgressBar({ percent: 50, showInfo: true });
+  assert(bar.e.className.includes('gd-progress'), 'ProgressBar root class');
 }
 
 section('skills blocks');

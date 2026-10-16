@@ -56,13 +56,17 @@ export function Select(props = {}) {
  * @param {import('../engine/element.js').Element|any} [props.control]
  */
 export function Field(props = {}, ...children) {
-  const { label, hint, control, className, id } = props;
+  const { label, hint, error, control, className, id } = props;
   const body = children.length ? children : control ? [control] : [];
   return el(
     'div',
-    { className: cx('gd-field', className), id },
+    { className: cx('gd-field', error && 'gd-field--error', className), id },
     label != null ? el('label', { className: 'gd-field__label', text: label }) : null,
     ...body,
-    hint != null ? el('div', { className: 'gd-field__hint', text: hint }) : null
+    error != null
+      ? el('div', { className: 'gd-field__error', text: error })
+      : hint != null
+        ? el('div', { className: 'gd-field__hint', text: hint })
+        : null
   );
 }

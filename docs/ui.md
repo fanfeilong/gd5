@@ -1,6 +1,6 @@
 # gd5 UI — Component library
 
-Ant Design–style **UI kit on top of the engine**. Prefer these over raw `div` + one-off CSS for common chrome.
+Ant Design–style **UI kit on top of the engine**. Catalog aligned with [NameThatUI](https://namethatui.com/) **web** elements (macOS-only chrome maps to the closest web control).
 
 **Default theme:** orange primary, **white panels**, soft warm page (`--gd-*` in `src/ui/css/tokens.css`).
 
@@ -11,8 +11,6 @@ App / product        →  your code or src/product/
 ```
 
 ## Install
-
-No build. Link styles (or `await loadUi()`), then import:
 
 ```html
 <link rel="stylesheet" href="./src/ui/css/ui.css">
@@ -35,11 +33,7 @@ render() {
         Space(
           { direction: 'vertical' },
           Field({ label: 'Name', control: Input({ id: 'name' }) }),
-          Button({
-            type: 'primary',
-            text: 'Save',
-            onClick: () => this.save(),
-          })
+          Button({ type: 'primary', text: 'Save', onClick: () => this.save() })
         )
       )
     );
@@ -47,40 +41,89 @@ render() {
 }
 ```
 
-Primitives return **real-DOM `Element`s** — valid children of `ensureShell` / `bind` trees.
+Primitives return **real-DOM `Element`s**. Overlay widgets are **`Component`s** with portal `mount()`.
 
-## Catalog (v1)
+## Catalog ↔ NameThatUI
 
-| Component | Kind | Notes |
-|-----------|------|--------|
-| `Button` | primitive | `type`: primary / default / ghost / danger / text; `size`: sm / md / lg |
-| `Input` / `TextArea` / `Select` | primitive | Form controls |
-| `Checkbox` / `Switch` | primitive | Boolean controls (orange when on) |
-| `Badge` | primitive | count / dot / status |
-| `Field` | primitive | Label + control + hint |
-| `Space` / `Divider` | primitive | Layout |
-| `Title` / `Text` | primitive | Typography |
-| `Card` | primitive | title / extra / footer |
-| `Tag` / `Alert` / `Spin` / `Empty` | primitive | Feedback |
-| `Modal` | **Component** | `mount` + `open()` / `close()` |
+| NameThatUI (web) | gd5 export | Kind |
+|------------------|------------|------|
+| Accordion / Disclosure | `Accordion`, `Collapse` | primitive |
+| Alert / Callout / Banner | `Alert`, `Callout`, `Banner` | primitive |
+| Avatar Group / Status Dot | `Avatar`, `AvatarGroup`, `StatusDot` | primitive |
+| Badge / Chip / Pill / Tag | `Badge`, `Chip`, `Pill`, `Tag` | primitive |
+| Bento Grid / Masonry | `BentoGrid`, `BentoTile`, `Masonry` | primitive |
+| Bottom Navigation | `BottomNav` | primitive |
+| Breadcrumbs | `Breadcrumbs` | primitive |
+| Card | `Card` | primitive |
+| Carousel / Page Control | `Carousel`, `PageControl` | primitive |
+| Chat Bubble | `ChatBubble` | primitive |
+| Combobox | `Combobox` | primitive |
+| Command Palette | `CommandPalette` | **Component** |
+| Data Table | `Table` / `DataTable` | primitive |
+| Date / Time pickers | `DatePicker`, `TimeField` | primitive |
+| Divider / Separator | `Divider` | primitive |
+| Drag & Drop cues | `DragHandle`, `DropZone` | primitive |
+| Empty State | `Empty` | primitive |
+| Floating buttons | `Fab`, `ChatLauncher`, `BackToTop` | primitive |
+| Focus ring | `.gd-focus-ring` | CSS |
+| Form Field | `Field`, `Input`, `TextArea`, `Select` | primitive |
+| Hamburger / Nav Drawer | `HamburgerButton`, `Drawer` | mixed |
+| Header / Navbar | `SiteHeader`, `Navbar` | primitive |
+| Hover Card | `HoverCard` | primitive |
+| Lightbox | `Lightbox` | **Component** |
+| Marquee | `Marquee` | primitive |
+| Modal / Dialog | `Modal` | **Component** |
+| Drawer / Sheet | `Drawer`, `Sheet` | **Component** |
+| Multi-select / Transfer | `MultiSelect`, `Transfer`, `TagInput` | primitive |
+| Overflow / Three dots | `OverflowMenu` | primitive |
+| Pagination | `Pagination` | primitive |
+| Pie / Donut Chart | `PieChart`, `DonutChart` | primitive |
+| Popover / Dropdown / Tooltip | `Popover`, `DropdownMenu`, `Tooltip` | primitive |
+| Context Menu | `ContextMenu` | primitive |
+| Progress / Spinner | `ProgressBar`, `ProgressRing`, `Spin`, `Meter` | primitive |
+| Resize Handle | `ResizeHandle` | primitive |
+| Scrim | `Scrim` | primitive |
+| Scroll Area / Sticky / Fixed | `ScrollArea`, `Sticky`, `Fixed` | primitive |
+| Scrollspy | `Scrollspy` | primitive |
+| Search Field | `SearchInput` | primitive |
+| Sidebar | `Sidebar` | primitive |
+| Sign-in Form | `SignInForm`, `PasswordInput`, `OrDivider` | primitive |
+| Skeleton | `Skeleton`, `SkeletonParagraph` | primitive |
+| Slider / Color Well | `Slider`, `ColorWell` | primitive |
+| Split View | `Splitter` / `SplitView` | primitive |
+| Split Button | `SplitButton` | primitive |
+| Steps / Quantity Stepper | `Steps`, `QuantityStepper` | primitive |
+| Switch / Checkbox / Radio | `Switch`, `Checkbox`, `Radio`, `RadioGroup` | primitive |
+| Tabs / Toggle Group | `Tabs`, `ToggleGroup`, `SegmentedControl` | primitive |
+| Timeline | `Timeline` | primitive |
+| Toast / Snackbar | `Toast` | **Component** |
+| Toolbar | `Toolbar` | primitive |
+| Tree / Outline / Disclosure | `Tree`, `OutlineView`, `DisclosureTriangle` | primitive |
+| Truncation | `Truncate` | primitive |
+| Typography | `Title`, `Text` | primitive |
+| Button | `Button` | primitive |
+
+**Not shipped as components** (CSS motion / vibe, not controls): easing, spring, text scramble, parallax, hover-lift effects, Name That Vibe styles. Use CSS / your app layer.
 
 Live gallery: [`examples/ui-gallery.html`](../examples/ui-gallery.html)
 
-## Modal
+## Modal / Drawer / Toast
 
 ```js
-const modal = new Modal({ navigator: this.navigator, logger: this.logger });
-await modal.mount(); // portal under document.body (does not clear the page)
-modal.open({
-  title: 'Delete?',
-  content: 'This cannot be undone.',
-  onOk: () => this.remove(),
-});
+const modal = new Modal({});
+await modal.mount();
+modal.open({ title: 'Delete?', content: 'Cannot undo.', onOk: () => {} });
+
+const drawer = new Drawer({});
+await drawer.mount();
+drawer.open({ title: 'Menu', placement: 'left', content: '…' });
+
+const toast = new Toast({});
+await toast.mount();
+toast.show({ message: 'Saved', type: 'success' });
 ```
 
 ## Theming
-
-Default is orange primary with white panels. Override on `:root`:
 
 ```css
 :root {
@@ -93,8 +136,7 @@ Default is orange primary with white panels. Override on `:root`:
 
 ## 中文
 
-- 引擎 = 运行时；**组件库** = `src/ui/`（对标 antd 常用件）
-- **默认配色：橙色主色 + 白色面板 + 浅暖灰页面底**
-- 基础件是函数，返回实 DOM，可放进 `ensureShell`
-- `Modal` 是 `Component`
+- 引擎 = 运行时；**组件库** = `src/ui/`（对标 antd + [NameThatUI](https://namethatui.com/) Web 清单）
+- **默认配色：橙色主色 + 白色面板**
+- 基础件返回实 DOM；`Modal` / `Drawer` / `Toast` / `Lightbox` / `CommandPalette` 是 `Component`
 - 画廊：`examples/ui-gallery.html`
