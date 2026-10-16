@@ -51,6 +51,13 @@ export class ComponentRender {
       pop: (n) => {
         this._pop(n);
       },
+      /**
+       * 刷新已挂载页面（默认当前页）。
+       * 走 Component.refresh()，不重新 mount / 不重绑 AttachEvents。
+       */
+      refresh: (componentName) => {
+        this.refresh(componentName);
+      },
     };
     this.state = null;
   }
@@ -92,6 +99,29 @@ export class ComponentRender {
     this._navigate(componentState.home, null, () => {
       this._renderPage(componentState.loading, 'none');
     });
+  }
+
+  /**
+   * 刷新已挂载组件。实现原先「isMount 时不重复渲染，添加刷新机制」的缺口。
+   * @param {string} [componentName] 默认当前页
+   */
+  refresh(componentName) {
+    const { componentState, components } = this.state;
+    const name = componentName || componentState.current;
+    if (name == null) {
+      this.m_logger.w('refresh skipped: no current component');
+      return;
+    }
+    const instance = components[name];
+    if (instance == null) {
+      this.m_logger.e(`refresh failed: Component:'${name}' is not exist!`);
+      return;
+    }
+    if (!instance.isMount) {
+      this.m_logger.w(`refresh skipped: '${name}' is not mounted`);
+      return;
+    }
+    instance.component.refresh();
   }
 
   _pop(n) {
@@ -180,7 +210,7 @@ export class ComponentRender {
     // check mount state
     const component = instance.component;
     if (instance.isMount) {
-      // 不重复渲染，添加刷新机制
+      // 已挂载：只切换 display。数据刷新请用 component.setData / navigator.refresh
       console.log(`display:${componentName}, isMount:${instance.isMount}, ${display}`);
       _display();
       this.dump();

@@ -30,6 +30,23 @@ goBack()
   → 显示上一页（非 modal 时）
 ```
 
+## 刷新（Mount 之后）
+
+进页后改数据不要再 `navigate` 整页重挂，用：
+
+```js
+this.setData({ title: '新标题' });     // 合并 state.data 并 refresh()
+this.refresh();                        // 仅再跑 render / 子类覆盖逻辑
+this.navigator.refresh();              // 刷新当前页
+this.navigator.refresh('preview');     // 刷新指定已挂载页
+```
+
+约定：
+
+- `AttachEvents` **只在首次 mount** 调用
+- 因此 `render()` 在 refresh 路径上应「有壳则只绑 `state.data` → `state.ref`」，避免 `D.clear` 拆掉已绑事件的节点
+- 若必须整页重建 DOM，请 `override refresh()` 并自行处理事件
+
 ## 页面槽
 
 `index.html` 里为每个组件准备同名 `id` 节点。`ComponentRender.init` 的 `id` 必须与之对应。

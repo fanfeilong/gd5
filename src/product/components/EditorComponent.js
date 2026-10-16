@@ -129,6 +129,13 @@ export class EditorComponent extends Component {
     this.logger.i(`EditorComponent mounted, blocks=${this.blocks.length}`);
   }
 
+  /**
+   * 编辑器壳在首次 render 时用 D 建好；刷新只重画布数据，避免清掉已绑事件。
+   */
+  refresh() {
+    this._paint();
+  }
+
   componentDidUnMount() {
     if (this._unsub) {
       this._unsub();

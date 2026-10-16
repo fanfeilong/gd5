@@ -4,6 +4,8 @@ import { documentToHtml } from '../lib/export.js';
 /**
  * Live Preview（产品）— 模态页，通过 navigator.navigate('preview', { doc }) 打开，
  * goBack() 关闭。依赖引擎的 isModal 透底行为。
+ *
+ * render() 做成可刷新：首次建壳，之后只把 state.data 绑到 ref（配合 setData/refresh）。
  */
 export class PreviewComponent extends Component {
   constructor(navigator, logger) {
@@ -20,7 +22,13 @@ export class PreviewComponent extends Component {
   }
 
   async componentDidMount(params) {
-    this.state.data.doc = params?.doc || null;
+    const doc = params?.doc || null;
+    this.state.data.doc = doc;
+    if (doc?.meta?.name) {
+      this.state.data.title = `预览 · ${doc.meta.name}`;
+    } else {
+      this.state.data.title = 'Live Preview';
+    }
     this.logger.i(`PreviewComponent mounted from ${params?.source || 'unknown'}`);
   }
 
@@ -43,6 +51,17 @@ export class PreviewComponent extends Component {
       closeBtn.addEventListener('click', () => this.navigator.goBack());
     }
 
+    const refreshBtn = this.state.ref.id?.btnRefreshPreview;
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', () => {
+        const name = this.state.data.doc?.meta?.name || 'Untitled';
+        // 演示 Mount 后 setData → refresh，不重走 navigate / AttachEvents
+        this.setData({
+          title: `预览 · ${name} · ${new Date().toLocaleTimeString()}`,
+        });
+      });
+    }
+
     this._onKey = (event) => {
       if (event.key === 'Escape') this.navigator.goBack();
     };
@@ -51,35 +70,57 @@ export class PreviewComponent extends Component {
 
   render() {
     const host = document.getElementById('preview');
-    D.clear(host);
+    const hasShell = !!this.state.ref.id?.previewFrame;
 
-    const d = new D();
-    d.div({ className: 'preview-shell', id: 'previewShell' }).childList([
-      d.div({ className: 'preview-shell__bar', id: 'previewBar' }).childList([
-        d.span({ id: 'previewTitle', text: this.state.data.title }),
-        d.button({
-          id: 'btnClosePreview',
-          type: 'button',
-          className: 'btn',
-          text: '关闭',
+    if (!hasShell) {
+      D.clear(host);
+
+      const d = new D();
+      d.div({ className: 'preview-shell', id: 'previewShell' }).childList([
+        d.div({ className: 'preview-shell__bar', id: 'previewBar' }).childList([
+          d.span({ id: 'previewTitle', text: this.state.data.title }),
+          d.div({ className: 'previewActions', id: 'previewActions' }).childList([
+            d.button({
+              id: 'btnRefreshPreview',
+              type: 'button',
+              className: 'btnRefreshPreview',
+              text: '刷新',
+            }),
+            d.button({
+              id: 'btnClosePreview',
+              type: 'button',
+              className: 'btnClosePreview',
+              text: '关闭',
+            }),
+          ]),
+        ]),
+        d.iframe({
+          id: 'previewFrame',
+          className: 'preview-shell__frame',
+          title: '原型预览',
         }),
-      ]),
-      d.iframe({
-        id: 'previewFrame',
-        className: 'preview-shell__frame',
-        title: '原型预览',
-      }),
-    ]);
+      ]);
 
-    // D indexes className as unique keys; button needs btn--ghost via classList after create
-    const [ref, root] = d.get();
-    ref.id.btnClosePreview.classList.add('btn--ghost');
-    this.state.ref = ref;
-    host.appendChild(root);
+      const [ref, root] = d.get();
+      ref.id.btnRefreshPreview.className = 'btn btn--ghost';
+      ref.id.btnClosePreview.className = 'btn btn--ghost';
+      ref.id.previewActions.style.display = 'flex';
+      ref.id.previewActions.style.gap = '8px';
+      this.state.ref = ref;
+      host.appendChild(root);
+    }
 
-    const doc = this.state.data.doc;
-    if (doc) {
-      ref.id.previewFrame.srcdoc = documentToHtml(doc);
+    this._bindData();
+  }
+
+  _bindData() {
+    const ids = this.state.ref.id || {};
+    if (ids.previewTitle) {
+      ids.previewTitle.textContent = this.state.data.title || 'Live Preview';
+    }
+    if (ids.previewFrame) {
+      const doc = this.state.data.doc;
+      ids.previewFrame.srcdoc = doc ? documentToHtml(doc) : '';
     }
   }
 }

@@ -9,6 +9,21 @@
 3. `render()` 里用 `D` 构建，把节点索引进 `this.state.ref`
 4. 事件只写在 `componentDidAttachEvents`
 5. `componentDidUnMount` 清理 DOM / 监听器（可用 `D.clear`）
+6. Mount 后改数据用 `setData` / `refresh`，不要重复 `navigate`
+
+## Skill：可刷新 render
+
+```js
+render() {
+  if (!this.state.ref.id?.root) {
+    // 首次：D 建壳，写入 this.state.ref
+  }
+  // 每次（含 refresh）：把 this.state.data 绑到 ref
+}
+
+// 之后
+this.setData({ message: 'updated' });
+```
 
 ## Skill：模态页
 

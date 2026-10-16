@@ -143,6 +143,65 @@ section('engine: Component + ComponentRender navigation');
   assert(render.state.components.editor.component.unmounted === 0, 'editor not unmounted by modal close');
 }
 
+section('engine: setData / refresh');
+{
+  class RefreshPage extends Component {
+    constructor(nav, logger) {
+      super();
+      this.navigator = nav;
+      this.logger = logger;
+      this.renderCount = 0;
+      this.attachCount = 0;
+      this.state = { data: { label: 'a' }, ref: {} };
+    }
+    async componentDidMount() {}
+    componentDidUnMount() {}
+    componentDidAttachEvents() {
+      this.attachCount += 1;
+    }
+    render() {
+      this.renderCount += 1;
+    }
+  }
+
+  const mounts = {};
+  globalThis.document = {
+    getElementById(id) {
+      if (!mounts[id]) mounts[id] = { style: { display: 'none' }, id };
+      return mounts[id];
+    },
+  };
+
+  const host = new ComponentRender({ logEnv: LogEnv.disable });
+  host.init(
+    { loading: 'boot', home: 'page' },
+    {
+      boot: { type: RefreshPage, isMount: false, isModal: false, id: 'boot' },
+      page: { type: RefreshPage, isMount: false, isModal: false, id: 'page' },
+    }
+  );
+
+  await new Promise((resolve) => {
+    host._navigate('page', null, resolve);
+  });
+
+  const page = host.state.components.page.component;
+  assert(page.renderCount === 1, 'initial render once');
+  assert(page.attachCount === 1, 'AttachEvents once on mount');
+
+  page.setData({ label: 'b' });
+  assert(page.state.data.label === 'b', 'setData merges state.data');
+  assert(page.renderCount === 2, 'setData triggers refresh/render');
+  assert(page.attachCount === 1, 'refresh does not re-AttachEvents');
+
+  host.refresh();
+  assert(page.renderCount === 3, 'navigator.refresh re-renders current page');
+  assert(page.attachCount === 1, 'navigator.refresh still skips AttachEvents');
+
+  page.setData({ label: 'c' }, { refresh: false });
+  assert(page.state.data.label === 'c' && page.renderCount === 3, 'setData can skip refresh');
+}
+
 section('engine: D / Element');
 {
   globalThis.document = {
