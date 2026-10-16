@@ -36,23 +36,31 @@ skills/blocks ──► product（积木数据）
 
 ## 产品
 
-- `BootComponent` → loading 槽
-- `EditorComponent` → home：壳 / 面板 / 画布节点用 `D` 构建，画布数据在 `state` + store
-- `PreviewComponent` → `isModal: true`，`navigate('preview', { doc })` / `goBack()`
-- 产品层优先 `D`，不用 `innerHTML` / 零散 `createElement` 拼 UI（相对 JSX：无编译，靠 `key`+多 class 把 DSL 用满）
+**页面组件**（进 `ComponentRender` 栈）只做组合；**视图 / 节点** 一模块一事。
+
+| 层 | 路径 | 职责 |
+|----|------|------|
+| 页面 | `components/*Component.js` | 导航槽：boot / editor / preview |
+| 视图 | `views/*View.js` | Toolbar / Palette / Artboard / Inspector |
+| 节点 | `nodes/*.js` | 每种画布 kind：`create` / `update` / `inspectorFields` |
+
+`EditorComponent` 只：`shell` 组合子视图、`attach` 转发、`subscribe → paint`。  
+kind 分支与属性表单条件不进 Editor，进 `nodes/` 注册表。
 
 ## 目录
 
 ```
 docs/
 src/engine/          # 引擎
-src/product/         # 产品
-  components/
+src/product/
+  components/        # 页面组件（薄）
+  views/             # 可组合视图
+  nodes/             # 画布节点 kind
   lib/
   css/
   main.js
-skills/blocks/       # 产品积木
-skills/engine/       # 引擎使用约定
+skills/blocks/
+skills/engine/
 test/
-index.html           # 仅页面槽 + 挂载 product/main.js
+index.html
 ```
