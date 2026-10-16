@@ -27,6 +27,7 @@ import { adoptStyles, adoptStylesFor } from './styles.js';
  * - DOM 事件写在 props（onClick…）；window 等用 on()，unmount 自动卸
  * - unmount 默认清宿主 DOM + 重置 ref（DidUnMount 只做业务清理）
  * - 样式旁挂 + mount 注入，不必在 index.html 堆全量 CSS
+ * - navigator / logger 默认注入：页面由 ComponentRender 传入；子组件用 spawn() 继承
  */
 export class Component {
   /**
@@ -41,11 +42,33 @@ export class Component {
   /** @see {adoptStylesFor} */
   static adoptStylesFor = adoptStylesFor;
 
-  constructor() {
+  /**
+   * @param {object} [deps]
+   * @param {object} [deps.navigator] 页栈遥控器（默认由引擎 / spawn 注入）
+   * @param {import('./log.js').Log} [deps.logger]
+   */
+  constructor(deps = {}) {
     this._host = null;
     this._mounted = false;
     this._listeners = [];
     this.state = { data: {}, ref: {} };
+    this.navigator = deps.navigator ?? null;
+    this.logger = deps.logger ?? null;
+  }
+
+  /**
+   * 创建子组件并默认带上本组件的 navigator / logger（业务 deps 可覆盖）。
+   * @template {typeof Component} C
+   * @param {C} ChildClass
+   * @param {object} [deps]
+   * @returns {InstanceType<C>}
+   */
+  spawn(ChildClass, deps = {}) {
+    return new ChildClass({
+      navigator: this.navigator,
+      logger: this.logger,
+      ...deps,
+    });
   }
 
   /**

@@ -2,19 +2,18 @@ import { Component } from '../../engine/index.js';
 
 /**
  * 启动页（产品）— loading 槽。
+ * navigator / logger 由 ComponentRender 默认注入。
  */
 export class BootComponent extends Component {
   static styles = new URL('./BootComponent.css', import.meta.url);
 
-  constructor(navigator, logger) {
-    super();
-    this.navigator = navigator;
-    this.logger = logger;
+  constructor(deps) {
+    super(deps);
     this.state.data.message = 'ProtoLive Engine starting…';
   }
 
   async componentDidMount() {
-    this.logger.i('BootComponent mounted');
+    this.logger?.i('BootComponent mounted');
   }
 
   render() {

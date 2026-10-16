@@ -9,22 +9,20 @@ import { ArtboardComponent } from './ArtboardComponent.js';
 import { InspectorComponent } from './InspectorComponent.js';
 
 /**
- * 编辑器页 — 组合子 Component：ensureShell 建宿主槽，再 mount 子组件。
+ * 编辑器页 — spawn 子组件时自动带上 navigator / logger。
  */
 export class EditorComponent extends Component {
   static styles = new URL('./EditorComponent.css', import.meta.url);
 
-  constructor(navigator, logger) {
-    super();
-    this.navigator = navigator;
-    this.logger = logger;
+  constructor(deps) {
+    super(deps);
     this.store = createStore();
     this.blocks = [];
     this.blocksById = {};
     this._unsub = null;
     this.state.data.ready = false;
 
-    const deps = {
+    const panelDeps = {
       store: this.store,
       getBlocks: () => this.blocks,
       getBlock: (id) => this.blocksById[id],
@@ -34,10 +32,10 @@ export class EditorComponent extends Component {
       },
     };
 
-    this.toolbar = new ToolbarComponent(navigator, logger, deps);
-    this.palette = new PaletteComponent(navigator, logger, deps);
-    this.artboard = new ArtboardComponent(navigator, logger, deps);
-    this.inspector = new InspectorComponent(navigator, logger, deps);
+    this.toolbar = this.spawn(ToolbarComponent, panelDeps);
+    this.palette = this.spawn(PaletteComponent, panelDeps);
+    this.artboard = this.spawn(ArtboardComponent, panelDeps);
+    this.inspector = this.spawn(InspectorComponent, panelDeps);
     this.children = [this.toolbar, this.palette, this.artboard, this.inspector];
   }
 
@@ -47,7 +45,7 @@ export class EditorComponent extends Component {
     this.store.replaceDoc(buildStarterDoc(this.blocksById), { recordHistory: false });
     this.store.clearHistory();
     this.state.data.ready = true;
-    this.logger.i(`EditorComponent mounted, blocks=${this.blocks.length}`);
+    this.logger?.i(`EditorComponent mounted, blocks=${this.blocks.length}`);
   }
 
   refresh() {
@@ -105,7 +103,6 @@ export class EditorComponent extends Component {
     this.ensureShell(
       (ids) => ids.appRoot,
       ({ div }) => {
-        // display:contents 宿主：子 Component 根节点直接参与 .app 网格
         div(
           { className: 'app', id: 'appRoot' },
           div({ id: 'host-toolbar', className: 'component-host' }),

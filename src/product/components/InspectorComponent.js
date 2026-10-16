@@ -2,16 +2,14 @@ import { Component, D, bind } from '../../engine/index.js';
 import { inspectorModel } from '../nodes/index.js';
 
 /**
- * 属性面板：壳与动态字段的 onChange / onClick 都写在 props 里。
+ * 属性面板。只需 store；runtime 默认继承。
  */
 export class InspectorComponent extends Component {
   static styles = new URL('./InspectorComponent.css', import.meta.url);
 
-  constructor(navigator, logger, { store } = {}) {
-    super();
-    this.navigator = navigator;
-    this.logger = logger;
-    this.store = store;
+  constructor(deps = {}) {
+    super(deps);
+    this.store = deps.store;
   }
 
   render() {

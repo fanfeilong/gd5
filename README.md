@@ -97,6 +97,8 @@ export class HomePage extends Component {
 
 ### 3. Wire navigation
 
+Pages receive `navigator` / `logger` **by default** (no manual wiring). Children inherit via `this.spawn(Child, deps)`.
+
 ```js
 import { ComponentRender, LogEnv } from './src/engine/index.js';
 import { HomePage } from './HomePage.js';
@@ -106,13 +108,16 @@ const app = new ComponentRender({ logEnv: LogEnv.chrome });
 app.init(
   { loading: 'home', home: 'home' },
   {
-    home: { type: HomePage, isMount: false, isModal: false, id: 'home' },
-    settings: { type: SettingsPage, isMount: false, isModal: false, id: 'settings' },
+    home: HomePage,                                      // id defaults to "home"
+    settings: { type: SettingsPage, isModal: true },     // only declare what differs
   }
 );
 
 window.addEventListener('DOMContentLoaded', () => app.render());
 ```
+
+Inside a page: `this.navigator.navigate('settings')`.  
+Compose children: `this.panel = this.spawn(Panel, { store })` — child gets the same `navigator` / `logger`.
 
 ---
 
@@ -134,12 +139,13 @@ unmount / goBack
 
 ### Authoring checklist
 
-1. `extends Component` — `state = { data, ref }` is provided.
+1. `extends Component` — `state`, and (when registered / spawned) `this.navigator` / `this.logger`.
 2. Co-locate CSS: `static styles = new URL('./X.css', import.meta.url)`.
 3. Build UI with `ensureShell` / `paint` + `bind` helpers — not hand-rolled `createElement` trees.
 4. Put DOM handlers in props: `onClick`, `onChange`, `onPointerDown`, … (or `events: { click: fn }`).
 5. Use `this.on(window, 'keydown', …)` only for non-tree targets.
 6. After mount, update with `setData` / `refresh` — do not re-`navigate` to refresh.
+7. Nest UI with `this.spawn(Child, deps)` so runtime context is inherited without re-passing.
 
 ### Composition
 
@@ -262,6 +268,8 @@ MIT
 ### 开发者要点
 
 - 页面与页内子组件共用 `mount` / `unmount`
+- **`this.navigator` / `this.logger` 默认注入**；子组件用 `this.spawn(Child, deps)` 继承，不必手传
+- 注册可简写：`home: HomePage`（默认 `id=name`）
 - UI：`ensureShell` + `bind`；事件写在 props（`onClick`…）；`window` 用 `this.on`
 - 样式：`static styles = new URL('./X.css', import.meta.url)`，与组件同目录
 - 更新：`setData` / `refresh`，不要靠重复 `navigate`

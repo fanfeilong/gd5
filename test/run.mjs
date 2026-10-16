@@ -106,13 +106,10 @@ section('engine: Component + ComponentRender navigation');
   };
 
   class PageA extends Component {
-    constructor(nav, logger) {
-      super();
-      this.navigator = nav;
-      this.logger = logger;
+    constructor(deps) {
+      super(deps);
       this.mounted = 0;
       this.unmounted = 0;
-      this.state = { data: {}, ref: {} };
     }
     async componentDidMount() {
       this.mounted += 1;
@@ -125,12 +122,9 @@ section('engine: Component + ComponentRender navigation');
   }
 
   class PageB extends Component {
-    constructor(nav, logger) {
-      super();
-      this.navigator = nav;
-      this.logger = logger;
+    constructor(deps) {
+      super(deps);
       this.mounted = 0;
-      this.state = { data: {}, ref: {} };
     }
     async componentDidMount() {
       this.mounted += 1;
@@ -144,11 +138,15 @@ section('engine: Component + ComponentRender navigation');
   render.init(
     { loading: 'boot', home: 'editor' },
     {
-      boot: { type: PageA, isMount: false, isModal: false, id: 'boot' },
-      editor: { type: PageA, isMount: false, isModal: false, id: 'editor' },
-      preview: { type: PageB, isMount: false, isModal: true, id: 'preview' },
+      boot: PageA,
+      editor: PageA,
+      preview: { type: PageB, isModal: true },
     }
   );
+  assert(render.state.components.editor.id === 'editor', 'init defaults id to name');
+  assert(render.state.components.editor.isMount === false, 'init defaults isMount false');
+  assert(!!render.state.components.editor.component.navigator, 'page gets navigator by default');
+  assert(!!render.state.components.editor.component.logger, 'page gets logger by default');
 
   await new Promise((resolve) => {
     render._navigate('editor', null, resolve);
@@ -178,13 +176,11 @@ section('engine: Component + ComponentRender navigation');
 section('engine: setData / refresh');
 {
   class RefreshPage extends Component {
-    constructor(nav, logger) {
-      super();
-      this.navigator = nav;
-      this.logger = logger;
+    constructor(deps) {
+      super(deps);
       this.renderCount = 0;
       this.attachCount = 0;
-      this.state = { data: { label: 'a' }, ref: {} };
+      this.state.data.label = 'a';
     }
     async componentDidMount() {}
     componentDidUnMount() {}
@@ -208,8 +204,8 @@ section('engine: setData / refresh');
   host.init(
     { loading: 'boot', home: 'page' },
     {
-      boot: { type: RefreshPage, isMount: false, isModal: false, id: 'boot' },
-      page: { type: RefreshPage, isMount: false, isModal: false, id: 'page' },
+      boot: RefreshPage,
+      page: RefreshPage,
     }
   );
 
@@ -234,11 +230,28 @@ section('engine: setData / refresh');
   assert(page.state.data.label === 'c' && page.renderCount === 3, 'setData can skip refresh');
 }
 
+section('engine: spawn inherits navigator');
+{
+  class Parent extends Component {}
+  class Child extends Component {
+    constructor(deps) {
+      super(deps);
+      this.store = deps.store;
+    }
+  }
+  const nav = { navigate() {} };
+  const log = { i() {} };
+  const parent = new Parent({ navigator: nav, logger: log });
+  const child = parent.spawn(Child, { store: { id: 1 } });
+  assert(child.navigator === nav && child.logger === log, 'spawn forwards navigator/logger');
+  assert(child.store.id === 1, 'spawn merges business deps');
+}
+
 section('engine: Component.mount composition');
 {
   class Child extends Component {
-    constructor() {
-      super();
+    constructor(deps) {
+      super(deps);
       this.mounts = 0;
       this.unmounts = 0;
       this.renders = 0;
@@ -371,6 +384,10 @@ section('product: component ergonomics');
   assert(editorSrc.includes('ensureShell') && editorSrc.includes("this.on(window"), 'Editor uses ensureShell + on(window)');
   assert(toolbarSrc.includes('static styles'), 'Toolbar declares static styles');
   assert(editorSrc.includes('EditorComponent.css'), 'Editor styles co-located');
+  assert(editorSrc.includes('this.spawn('), 'Editor spawn children for default navigator');
+  assert(!toolbarSrc.includes('constructor(navigator'), 'Toolbar no positional navigator ctor');
+  const mainSrc = readFileSync(join(root, 'src/product/main.js'), 'utf8');
+  assert(mainSrc.includes('boot: BootComponent'), 'main uses init shorthand');
 }
 
 section('engine: adoptStyles');

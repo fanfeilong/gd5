@@ -1,18 +1,16 @@
 import { Component } from '../../engine/index.js';
 
 /**
- * 顶栏组件：撤销 / 重做 / 预览 / 导出。
- * 事件在 render props 里声明（onClick）。
+ * 顶栏：撤销 / 重做 / 预览 / 导出。
+ * this.navigator 由父组件 spawn 默认注入。
  */
 export class ToolbarComponent extends Component {
   static styles = new URL('./ToolbarComponent.css', import.meta.url);
 
-  constructor(navigator, logger, { store, onExport } = {}) {
-    super();
-    this.navigator = navigator;
-    this.logger = logger;
-    this.store = store;
-    this.onExport = onExport;
+  constructor(deps = {}) {
+    super(deps);
+    this.store = deps.store;
+    this.onExport = deps.onExport;
   }
 
   render() {

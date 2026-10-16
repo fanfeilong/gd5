@@ -78,10 +78,33 @@ export class ToolbarComponent extends Component {
 - `mount` 前会 `adoptStylesFor(this.constructor)`，相同 URL / 文本只注入一次
 - **全局**：`css/tokens.css` + `css/base.css`；**组件私有**旁挂 CSS
 
+### navigator / logger：少写，但默认有
+
+- 页面：`ComponentRender.init` 构造时注入 `{ navigator, logger }` → 直接 `this.navigator`
+- 子组件：`this.spawn(Child, { store })` 自动带上父级 runtime（不必再传 nav/logger）
+- 注册简写：`home: HomePage`；默认 `id = name`、`isMount = false`、`isModal = false`
+
+```js
+// main
+app.init({ loading: 'home', home: 'home' }, {
+  home: HomePage,
+  preview: { type: PreviewPage, isModal: true },
+});
+
+// 父组件
+this.toolbar = this.spawn(Toolbar, { store: this.store });
+// Toolbar 内：this.navigator.navigate('preview', { doc })
+```
+
 ### 推荐骨架
 
 ```js
 export class Panel extends Component {
+  constructor(deps) {
+    super(deps); // 已带 navigator / logger
+    this.store = deps.store;
+  }
+
   componentDidAttachEvents() {
     // 仅非树内目标（window 等）
     this.on(window, 'keydown', (e) => { /* … */ });
