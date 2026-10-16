@@ -5,7 +5,7 @@
 | 层 | 路径 | 职责 |
 |----|------|------|
 | **引擎 (Engine)** | `src/engine/` | 迷你实模式 DOM 运行时：`Component` / `ComponentRender` / `D` / `Log` |
-| **组件库 (UI)** | `src/ui/` | 对标 antd 的常用组件（Button / Input / Modal…），默认**橙色 / 浅橙**主题 |
+| **组件库 (UI)** | `src/ui/` | 对标 antd 的常用组件（Button / Input / Modal…），默认**橙色主色 + 白色面板** |
 | **产品 (Product)** | `src/product/` | 示例应用 ProtoLive（可用引擎 + UI 库） |
 
 ```
