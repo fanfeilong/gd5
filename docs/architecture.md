@@ -25,8 +25,9 @@ skills/blocks ──► product（积木数据）
 
 ## 引擎
 
-- `Component`：生命周期 + `setData` / `refresh` + **`mount(host)` / `unmount()`**（页内组合）
-- `ComponentRender`：页面栈 `navigate` / `goBack` / modal
+- `Component`：生命周期 + `setData` / `refresh` + **`mount` / `unmount`**（页面与页内同一套）
+- 降噪：`ensureShell` / `paint`、`on` / `onId`、`ids()`（少手写 clear/bind/监听清理）
+- `ComponentRender`：页面栈走 `component.mount(页槽)`，与子组件一致
 - `D` / `bind` / `map`：实 DOM 组合
 
 产品不得另起一套 View 生命周期绕开 `Component`。

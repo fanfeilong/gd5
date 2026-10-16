@@ -174,7 +174,8 @@ export class ComponentRender {
       const previousInstance = componentState.stack[previousIndex];
       const currentInstance = componentState.stack.pop();
 
-      currentInstance.component.componentDidUnMount();
+      // 与页内子组件同一套 unmount（DidUnMount + 清宿主 + 卸监听）
+      currentInstance.component.unmount();
       this._renderPage(currentInstance.componentName, 'none');
       currentInstance.isMount = false;
 
@@ -200,14 +201,14 @@ export class ComponentRender {
       return;
     }
 
+    const hostEl = document.getElementById(instance.id);
     const _display = () => {
       if (onComplete) {
         onComplete();
       }
-      document.getElementById(instance.id).style.display = display;
+      if (hostEl) hostEl.style.display = display;
     };
 
-    // check mount state
     const component = instance.component;
     if (instance.isMount) {
       // 已挂载：只切换 display。数据刷新请用 component.setData / navigator.refresh
@@ -216,7 +217,6 @@ export class ComponentRender {
       this.dump();
       return;
     }
-    instance.isMount = true;
 
     // prepare params
     let params;
@@ -231,10 +231,9 @@ export class ComponentRender {
       params.source = previousInstance.componentName;
     }
 
-    // do mount
-    component.componentDidMount(params).then(() => {
-      component.render();
-      component.componentDidAttachEvents();
+    // 页面也走 Component.mount，host() / on() / ensureShell 与子组件一致
+    instance.isMount = true;
+    component.mount(hostEl, params).then(() => {
       _display();
       this.dump();
     });
