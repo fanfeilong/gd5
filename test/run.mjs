@@ -89,6 +89,10 @@ section('layout: product vs engine');
     'src/ui/css/control.css',
     'src/ui/css/extra.css',
     'src/ui/css/antd-gap.css',
+    'src/ui/theme.js',
+    'docs/images/theme-orange.png',
+    'docs/images/theme-blue.png',
+    'docs/images/theme-green.png',
     'examples/ui-gallery.html',
     'examples/ui-gallery.js',
     'src/engine/styles.js',
@@ -680,6 +684,10 @@ section('ui kit');
   assert(/#e86a17|#E86A17/.test(tokens), 'default primary is orange');
   assert(tokens.includes('--gd-bg-container: #ffffff') || tokens.includes('--gd-bg-elevated: #ffffff'), 'panels default to white');
   assert(tokens.includes('#f7f4f0') || tokens.includes('--gd-bg:'), 'warm page background token present');
+  assert(tokens.includes("data-gd-theme='blue'") || tokens.includes('data-gd-theme="blue"'), 'blue theme tokens present');
+  assert(tokens.includes("data-gd-theme='green'") || tokens.includes('data-gd-theme="green"'), 'green theme tokens present');
+  assert(/#2f6fed/i.test(tokens), 'blue primary token present');
+  assert(/#2f8f5b/i.test(tokens), 'green primary token present');
 
   const ui = await import('../src/ui/index.js');
   const {
@@ -723,6 +731,8 @@ section('ui kit');
   for (const name of namedExports) {
     assert(typeof ui[name] === 'function', `export ${name}`);
   }
+  assert(ui.themes && ui.themes.orange && ui.themes.blue && ui.themes.green, 'themes catalog exported');
+  assert(typeof ui.setTheme === 'function' && typeof ui.getTheme === 'function', 'setTheme/getTheme exported');
 
   const docs = readFileSync(join(root, 'docs/ui.md'), 'utf8');
   assert(docs.includes('namethatui.com') || docs.includes('NameThatUI'), 'docs reference NameThatUI');
@@ -811,6 +821,25 @@ section('ui kit');
     selectedKey: '1',
   });
   assert(menu.e.className.includes('gd-menu'), 'Menu root class');
+
+  const htmlEl = {
+    attrs: {},
+    setAttribute(name, value) {
+      this.attrs[name] = value;
+    },
+    getAttribute(name) {
+      return this.attrs[name];
+    },
+  };
+  globalThis.document.documentElement = htmlEl;
+  assert(ui.setTheme('blue') === 'blue', 'setTheme returns blue');
+  assert(htmlEl.attrs['data-gd-theme'] === 'blue', 'setTheme writes data-gd-theme');
+  assert(ui.getTheme() === 'blue', 'getTheme reads blue');
+  assert(ui.setTheme('green') === 'green', 'setTheme green');
+  assert(ui.setTheme('nope') === 'orange', 'invalid theme falls back to orange');
+
+  const scoped = ui.ConfigProvider({ theme: 'blue' }, ui.Button({ type: 'primary', text: 'Hi' }));
+  assert(scoped.e.className.includes('gd-config-provider'), 'ConfigProvider root');
 }
 
 section('skills blocks');

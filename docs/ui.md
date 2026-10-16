@@ -2,7 +2,7 @@
 
 Ant Design–style **UI kit on top of the engine**. Catalog aligned with [NameThatUI](https://namethatui.com/) **web** elements **and** [Ant Design](https://ant.design/components/overview) controls (macOS-only chrome maps to the closest web control).
 
-**Default theme:** orange primary, **white panels**, soft warm page (`--gd-*` in `src/ui/css/tokens.css`).
+**Themes (selectable):** `orange` (default), `blue`, `green` — white panels, accent via `--gd-*` / `setTheme()` / `ConfigProvider`.
 
 ```
 Engine (runtime)     →  src/engine/
@@ -156,18 +156,37 @@ toast.show({ message: 'Saved', type: 'success' });
 
 ## Theming
 
+Built-in accents (all keep **white panels**):
+
+| Name | Primary | Page wash | API |
+|------|---------|-----------|-----|
+| `orange` (default) | `#e86a17` | `#f7f4f0` | `setTheme('orange')` |
+| `blue` | `#2f6fed` | `#f3f6fb` | `setTheme('blue')` |
+| `green` | `#2f8f5b` | `#f3f8f4` | `setTheme('green')` |
+
+```js
+import { setTheme, ConfigProvider, Button } from './src/ui/index.js';
+
+setTheme('blue'); // <html data-gd-theme="blue">
+
+ConfigProvider({ theme: 'green' },
+  Button({ type: 'primary', text: 'Scoped green' })
+);
+```
+
+Or override tokens manually:
+
 ```css
 :root {
   --gd-primary: #e86a17;
   --gd-bg: #f7f4f0;
   --gd-bg-elevated: #ffffff;
-  --gd-bg-container: #ffffff;
 }
 ```
 
 ## 中文
 
 - 引擎 = 运行时；**组件库** = `src/ui/`（对标 [antd](https://ant.design/components/overview) + [NameThatUI](https://namethatui.com/) Web 清单）
-- **默认配色：橙色主色 + 白色面板**
+- **主题可选：`orange` / `blue` / `green`**（白面板 + 主色切换）；`setTheme()` 或 `ConfigProvider`
 - 基础件返回实 DOM；`Modal` / `Drawer` / `Toast` / `Notification` / `Lightbox` / `CommandPalette` 是 `Component`
 - 画廊：`examples/ui-gallery.html`

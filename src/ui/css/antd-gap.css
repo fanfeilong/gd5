@@ -520,5 +520,9 @@
 .gd-icon--lg { font-size: 22px; }
 .gd-icon--spin { animation: gd-spin 0.8s linear infinite; }
 
-/* ConfigProvider */
-.gd-config-provider { display: block; }
+/* ConfigProvider — inherits data-gd-theme + CSS vars to descendants */
+.gd-config-provider {
+  display: block;
+  color: var(--gd-text);
+  background: transparent;
+}
