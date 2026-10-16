@@ -12,6 +12,8 @@ import { InspectorComponent } from './InspectorComponent.js';
  * 编辑器页 — 组合子 Component：ensureShell 建宿主槽，再 mount 子组件。
  */
 export class EditorComponent extends Component {
+  static styles = new URL('./EditorComponent.css', import.meta.url);
+
   constructor(navigator, logger) {
     super();
     this.navigator = navigator;

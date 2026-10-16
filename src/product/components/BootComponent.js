@@ -4,6 +4,8 @@ import { Component } from '../../engine/index.js';
  * 启动页（产品）— loading 槽。
  */
 export class BootComponent extends Component {
+  static styles = new URL('./BootComponent.css', import.meta.url);
+
   constructor(navigator, logger) {
     super();
     this.navigator = navigator;

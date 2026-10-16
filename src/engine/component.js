@@ -1,4 +1,5 @@
 import { D, bind } from './element.js';
+import { adoptStyles, adoptStylesFor } from './styles.js';
 
 /**
  * 迷你实模式 HTML 组件规范（引擎）
@@ -12,6 +13,10 @@ import { D, bind } from './element.js';
  * 1. 页面：ComponentRender.navigate → mount(页槽)
  * 2. 组合：父组件 ensureShell/paint 出宿主后，子组件 mount(host)
  *
+ * 样式与组件同目录：
+ *   static styles = new URL('./FooComponent.css', import.meta.url);
+ * mount 时按 key 注入一次（见 adoptStyles）。
+ *
  * 刷新约定（Mount 之后）：
  * - setData(patch) 合并 this.state.data，并默认调用 refresh()
  * - refresh() 默认再跑 render()；AttachEvents 只在首次 mount
@@ -21,8 +26,21 @@ import { D, bind } from './element.js';
  * - paint / ensureShell：不必手写 clear → bind → get → append
  * - on / onId：监听自动在 unmount 时卸掉
  * - unmount 默认清宿主 DOM + 重置 ref（DidUnMount 只做业务清理）
+ * - 样式旁挂 + mount 注入，不必在 index.html 堆全量 CSS
  */
 export class Component {
+  /**
+   * 可选：旁挂样式。URL | CSS 文本 | 数组。
+   * @type {string|URL|Array<string|URL>|null}
+   */
+  static styles = null;
+
+  /** @see {adoptStyles} */
+  static adoptStyles = adoptStyles;
+
+  /** @see {adoptStylesFor} */
+  static adoptStylesFor = adoptStylesFor;
+
   constructor() {
     this._host = null;
     this._mounted = false;
@@ -75,6 +93,7 @@ export class Component {
     if (!this._host) {
       throw new Error('Component.mount: host not found');
     }
+    await adoptStylesFor(this.constructor);
     await this.componentDidMount(params);
     this.render();
     this.componentDidAttachEvents();

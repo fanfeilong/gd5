@@ -5,13 +5,16 @@
 ## Skill：新建组件（页面或页内）
 
 1. `extends Component`（基类已带 `state = { data, ref }`）
-2. `render()` 用 **`ensureShell`** 建壳，不要手写 clear/bind/get/append
-3. 事件只用 **`on` / `onId`**（写在 `componentDidAttachEvents`）
-4. `componentDidUnMount` 只清业务（订阅、定时器）；**不必** `D.clear(host)`
-5. Mount 后改数据用 `setData` / `refresh`，不要重复 `navigate`
+2. 旁挂 **`MyPanel.css`**，声明 `static styles = new URL('./MyPanel.css', import.meta.url)`
+3. `render()` 用 **`ensureShell`** 建壳，不要手写 clear/bind/get/append
+4. 事件只用 **`on` / `onId`**（写在 `componentDidAttachEvents`）
+5. `componentDidUnMount` 只清业务（订阅、定时器）；**不必** `D.clear(host)`
+6. Mount 后改数据用 `setData` / `refresh`，不要重复 `navigate`
 
 ```js
 export class MyPanel extends Component {
+  static styles = new URL('./MyPanel.css', import.meta.url);
+
   componentDidAttachEvents() {
     this.onId('btn', 'click', () => this.doIt());
   }
@@ -28,6 +31,8 @@ export class MyPanel extends Component {
   }
 }
 ```
+
+全局只放 `css/tokens.css` + `css/base.css`；组件私有 class 写在旁挂 CSS，不要堆回 `app.css`。
 
 ## Skill：可刷新 render
 

@@ -1,0 +1,20 @@
+/* EditorComponent — 页内网格与子组件宿主 */
+
+.app > .component-host {
+  display: contents;
+}
+
+.app {
+  display: grid;
+  grid-template-columns: var(--palette-w) 1fr var(--inspector-w);
+  grid-template-rows: var(--toolbar-h) 1fr;
+  height: 100%;
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .app {
+    grid-template-columns: 1fr;
+    grid-template-rows: var(--toolbar-h) auto 1fr auto;
+  }
+}

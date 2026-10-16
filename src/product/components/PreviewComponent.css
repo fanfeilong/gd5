@@ -1,0 +1,26 @@
+/* PreviewComponent — 模态预览壳 */
+
+.preview-shell {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-shell__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+}
+
+.preview-shell__frame {
+  flex: 1;
+  width: min(100%, 430px);
+  margin: 24px auto;
+  border: none;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}

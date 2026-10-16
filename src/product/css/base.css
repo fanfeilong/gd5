@@ -1,0 +1,154 @@
+/**
+ * 产品全局基础样式：reset、页槽、共享控件。
+ * 组件私有样式旁挂在 components/*.css，由 Component.mount 注入。
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  font-family: var(--font-display);
+  background: var(--bg-app);
+  color: var(--text-primary);
+}
+
+/* Engine page mounts (ComponentRender toggles display) */
+#boot,
+#editor,
+#preview {
+  height: 100%;
+}
+
+#boot {
+  display: grid;
+  place-items: center;
+  color: var(--text-secondary);
+}
+
+#editor {
+  overflow: hidden;
+}
+
+#preview {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(8, 12, 16, 0.92);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+/* —— 共享控件（多组件复用） —— */
+
+.btn {
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background 160ms var(--ease), border-color 160ms var(--ease), transform 120ms var(--ease);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn--ghost {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--text-secondary);
+}
+
+.btn--ghost:hover {
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+.btn--secondary {
+  background: var(--bg-elevated);
+  border-color: var(--border-strong);
+}
+
+.btn--secondary:hover {
+  background: #263140;
+}
+
+.btn--primary {
+  background: var(--accent);
+  color: #04201e;
+  font-weight: 600;
+}
+
+.btn--primary:hover {
+  background: var(--accent-hover);
+}
+
+.btn--danger {
+  background: transparent;
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.panel-title {
+  margin: 0 0 4px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.panel-hint {
+  margin: 0 0 12px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.field input,
+.field textarea,
+.field select {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 7px 9px;
+  color: var(--text-primary);
+}
+
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.empty-state {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
