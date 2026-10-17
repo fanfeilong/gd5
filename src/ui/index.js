@@ -109,7 +109,13 @@ export { ConfigProvider } from './config.js';
 export { Watermark } from './watermark.js';
 export { Fab, ChatLauncher, BackToTop } from './float.js';
 export { PieChart, DonutChart } from './chart.js';
-export { Tree, OutlineView, DisclosureTriangle } from './tree.js';
+export {
+  Tree,
+  OutlineView,
+  DisclosureTriangle,
+  treePathKeys,
+  nextTreeExpandedKeys,
+} from './tree.js';
 export { DragHandle, DropZone } from './drag.js';
 
 export { Modal } from './Modal.js';

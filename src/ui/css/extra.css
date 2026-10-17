@@ -976,32 +976,111 @@
 .gd-chart { display: inline-block; }
 
 /* Tree */
-.gd-tree { font-size: 14px; }
-.gd-tree__row { display: flex; align-items: center; gap: 4px; min-height: 28px; }
-.gd-tree__row--selected .gd-tree__label { color: var(--gd-primary); font-weight: 600; }
+/* Tree — VS Code explorer style: compact rows, chevron, indent guides */
+.gd-tree {
+  font-size: 13px;
+  line-height: 22px;
+  --gd-tree-indent: 8px;
+  --gd-tree-guide: color-mix(in srgb, var(--gd-border-strong) 85%, transparent);
+  --gd-tree-row-h: 22px;
+  --gd-tree-twist: 16px;
+  color: var(--gd-text);
+  user-select: none;
+}
+.gd-tree__node { position: relative; }
+
+.gd-tree__row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: var(--gd-tree-row-h);
+  height: var(--gd-tree-row-h);
+  padding-right: 8px;
+  cursor: pointer;
+  border-radius: 0;
+  position: relative;
+}
+.gd-tree__row:hover { background: var(--gd-bg-spotlight); }
+.gd-tree__row--selected,
+.gd-tree__row--selected:hover {
+  background: var(--gd-primary-soft);
+}
+.gd-tree__row--selected .gd-tree__label {
+  color: var(--gd-text);
+  font-weight: 400;
+}
+
+/* Indent guides: continuous vertical rails (no L-stubs) */
+.gd-tree__children {
+  position: relative;
+  margin-left: calc(var(--gd-tree-twist) / 2);
+  padding-left: var(--gd-tree-indent);
+  border-left: 1px solid var(--gd-tree-guide);
+}
+.gd-tree__children > .gd-tree__node { position: relative; }
+
+/* Chevron (codicon-like), muted until open */
 .gd-tree__twist {
-  width: 20px;
-  height: 20px;
+  flex: 0 0 var(--gd-tree-twist);
+  width: var(--gd-tree-twist);
+  height: var(--gd-tree-twist);
+  margin-left: 2px;
+  padding: 0;
   border: 0;
   background: transparent;
   cursor: pointer;
   color: var(--gd-text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transform: rotate(0deg);
-  transition: transform 120ms var(--gd-ease);
+  transition: transform 100ms linear, color 100ms linear;
+  border-radius: 3px;
+  opacity: 0.9;
 }
-.gd-tree__twist--open { transform: rotate(90deg); color: var(--gd-primary); }
-.gd-tree__twist--leaf { visibility: hidden; }
+.gd-tree__twist:hover {
+  color: var(--gd-text);
+  background: color-mix(in srgb, var(--gd-text) 8%, transparent);
+}
+.gd-tree__twist::before {
+  content: '';
+  display: block;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 3.5px 0 3.5px 5px;
+  border-color: transparent transparent transparent currentColor;
+}
+.gd-tree__twist--open {
+  transform: rotate(90deg);
+  color: var(--gd-text-secondary);
+}
+.gd-tree__twist--leaf {
+  cursor: default;
+  visibility: hidden;
+  pointer-events: none;
+  background: transparent;
+}
+.gd-tree__twist--leaf::before { display: none; }
+.gd-tree__twist--leaf:hover { background: transparent; }
+
 .gd-tree__label {
   border: 0;
   background: transparent;
   cursor: pointer;
   font: inherit;
-  color: var(--gd-text);
-  padding: 2px 6px;
-  border-radius: 4px;
+  line-height: inherit;
+  color: inherit;
+  padding: 0 4px;
+  border-radius: 0;
   text-align: left;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.gd-tree__label:hover { background: var(--gd-bg-spotlight); }
+.gd-tree__label:hover { background: transparent; }
 
 /* Command palette */
 .gd-cmd-root { position: fixed; inset: 0; z-index: 1150; display: none; }
