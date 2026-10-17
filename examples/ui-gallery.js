@@ -118,6 +118,7 @@ import {
   WorkflowDAG,
   JsonTree,
   CodeBlock,
+  DiffBlock,
   themes,
   setTheme,
   getTheme,
@@ -558,6 +559,15 @@ class GalleryPage extends Component {
                 startFrom: 10,
                 lineNumbers: true,
                 code: '{\n  "ok": true,\n  "n": 42\n}\n',
+              }),
+              Text({
+                type: 'secondary',
+                text: 'DiffBlock — unified diff with dual gutters (old | new) and +/- markers.',
+              }),
+              DiffBlock({
+                language: 'javascript',
+                diff:
+                  '--- a/add.js\n+++ b/add.js\n@@ -1,5 +1,6 @@\n /** Add two numbers */\n-export function add(a, b) {\n-  return a + b;\n+export function add(a, b, c = 0) {\n+  // keep precision\n+  return a + b + c;\n }\n',
               })
             )
           ),
