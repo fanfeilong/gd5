@@ -115,6 +115,7 @@ import {
   Toast,
   Lightbox,
   CommandPalette,
+  WorkflowDAG,
   themes,
   setTheme,
   getTheme,
@@ -171,6 +172,8 @@ class GalleryPage extends Component {
     this.lightbox = new Lightbox({});
     this.cmd = new CommandPalette({});
     this.notification = new Notification({});
+    this.workflow = new WorkflowDAG({});
+    this._workflowMounted = false;
   }
 
   async componentDidMount() {
@@ -523,6 +526,22 @@ class GalleryPage extends Component {
                   { key: 'search', label: 'Search', icon: '⌕' },
                   { key: 'me', label: 'Me', icon: '☺' },
                 ],
+              })
+            )
+          ),
+
+          this.section(
+            'Workflow DAG',
+            Space(
+              { direction: 'vertical', size: 'sm' },
+              Text({
+                type: 'secondary',
+                text: 'Multi-column DAG: scroll, drag blank area to pan, click a node for the right drawer.',
+              }),
+              div({
+                id: 'workflowHost',
+                className: 'component-host',
+                style: { minHeight: '360px' },
               })
             )
           ),
@@ -973,6 +992,91 @@ class GalleryPage extends Component {
         );
       }
     );
+
+    const wfHost = this.ids().workflowHost;
+    if (wfHost && !this._workflowMounted) {
+      this._workflowMounted = true;
+      void this.workflow.mount(wfHost).then(() => {
+        this.workflow.setGraph({
+          columns: [
+            {
+              key: 'ingest',
+              title: 'Ingest',
+              nodes: [
+                {
+                  key: 'n-source',
+                  title: 'Source sync',
+                  status: 'success',
+                  description: 'Pull events from upstream queue.',
+                },
+                {
+                  key: 'n-validate',
+                  title: 'Validate',
+                  status: 'running',
+                  description: 'Schema + freshness checks.',
+                },
+              ],
+            },
+            {
+              key: 'transform',
+              title: 'Transform',
+              nodes: [
+                {
+                  key: 'n-enrich',
+                  title: 'Enrich',
+                  status: 'pending',
+                  description: 'Join dimensions and tags.',
+                },
+                {
+                  key: 'n-aggregate',
+                  title: 'Aggregate',
+                  status: 'pending',
+                  description: 'Roll up by tenant and day.',
+                },
+              ],
+            },
+            {
+              key: 'deliver',
+              title: 'Deliver',
+              nodes: [
+                {
+                  key: 'n-warehouse',
+                  title: 'Warehouse load',
+                  status: 'pending',
+                  description: 'Write parquet partitions.',
+                },
+                {
+                  key: 'n-notify',
+                  title: 'Notify',
+                  status: 'pending',
+                  description: 'Slack + email on completion.',
+                },
+              ],
+            },
+            {
+              key: 'observe',
+              title: 'Observe',
+              nodes: [
+                {
+                  key: 'n-metrics',
+                  title: 'Metrics',
+                  status: 'pending',
+                  description: 'Emit pipeline SLIs.',
+                },
+              ],
+            },
+          ],
+          edges: [
+            { from: 'n-source', to: 'n-enrich' },
+            { from: 'n-validate', to: 'n-enrich' },
+            { from: 'n-enrich', to: 'n-aggregate' },
+            { from: 'n-aggregate', to: 'n-warehouse' },
+            { from: 'n-warehouse', to: 'n-notify' },
+            { from: 'n-notify', to: 'n-metrics' },
+          ],
+        });
+      });
+    }
   }
 }
 

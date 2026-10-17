@@ -82,6 +82,8 @@ section('layout: product vs engine');
     'src/ui/tabs.js',
     'src/ui/table.js',
     'src/ui/CommandPalette.js',
+    'src/ui/WorkflowDAG.js',
+    'src/ui/css/workflow.css',
     'src/ui/input-number.js',
     'src/ui/rate.js',
     'src/ui/cascader.js',
@@ -775,6 +777,17 @@ section('ui kit');
   assert(typeof CommandPalette === 'function', 'CommandPalette exported');
   assert(typeof Table === 'function' && typeof Tree === 'function', 'Table/Tree exported');
   assert(typeof ProgressBar === 'function', 'ProgressBar exported');
+  assert(typeof ui.WorkflowDAG === 'function', 'WorkflowDAG component exported');
+  assert(typeof ui.WorkflowBoard === 'function', 'WorkflowBoard primitive exported');
+  {
+    const wf = new ui.WorkflowDAG({});
+    assert(typeof wf.setGraph === 'function' && typeof wf.openDrawerFor === 'function', 'WorkflowDAG graph/drawer API');
+    wf.setGraph({
+      columns: [{ key: 'a', title: 'A', nodes: [{ key: 'n1', title: 'N1' }] }],
+      edges: [],
+    });
+    assert(wf.state.data.columns.length === 1 && wf.findNode('n1')?.title === 'N1', 'WorkflowDAG setGraph + findNode');
+  }
 
   {
     const { treePathKeys, nextTreeExpandedKeys } = ui;
