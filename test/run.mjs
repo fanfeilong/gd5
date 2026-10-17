@@ -84,6 +84,8 @@ section('layout: product vs engine');
     'src/ui/CommandPalette.js',
     'src/ui/WorkflowDAG.js',
     'src/ui/css/workflow.css',
+    'src/ui/JsonTree.js',
+    'src/ui/css/json-tree.css',
     'src/ui/input-number.js',
     'src/ui/rate.js',
     'src/ui/cascader.js',
@@ -787,6 +789,24 @@ section('ui kit');
       edges: [],
     });
     assert(wf.state.data.columns.length === 1 && wf.findNode('n1')?.title === 'N1', 'WorkflowDAG setGraph + findNode');
+  }
+  assert(typeof ui.JsonTree === 'function', 'JsonTree component exported');
+  assert(typeof ui.flattenJsonTree === 'function', 'flattenJsonTree helper exported');
+  {
+    const sample = { a: 1, b: { c: true, d: [null, 'x'] } };
+    assert(ui.jsonValueType(null) === 'null' && ui.jsonValueType([]) === 'array', 'jsonValueType covers null/array');
+    const collapsed = ui.flattenJsonTree(sample, new Set());
+    assert(collapsed.length === 1 && collapsed[0].path === '$', 'collapsed JSON tree is a single root row');
+    const open = ui.flattenJsonTree(sample, new Set(['$', "$['b']", "$['b']['d']"]));
+    assert(open.length >= 6, 'expanded JSON tree flattens nested rows');
+    assert(open.some((r) => r.type === 'string' && r.value === 'x'), 'flatten includes leaf string values');
+    const jt = new ui.JsonTree({ defaultExpand: 1 });
+    jt.loadData(sample);
+    assert(jt.state.data.expanded.has('$'), 'JsonTree defaultExpand opens root');
+    jt.expand();
+    assert(jt.state.data.expanded.size >= 3, 'JsonTree.expand opens complex paths');
+    jt.collapse();
+    assert(jt.state.data.expanded.size === 0, 'JsonTree.collapse clears expansion');
   }
 
   {

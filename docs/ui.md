@@ -100,6 +100,7 @@ Primitives return **real-DOM `Element`s**. Overlay widgets are **`Component`s** 
 | Toolbar | `Toolbar` | primitive |
 | Tree / Outline / Disclosure | `Tree` (`accordion` 手风琴单路径), `OutlineView`, `DisclosureTriangle` | primitive |
 | Workflow DAG (multi-column) | `WorkflowDAG`, `WorkflowBoard` | **Component** / primitive |
+| JSON Tree (virtualized) | `JsonTree`, `createJsonTree` | **Component** |
 | Truncation | `Truncate` | primitive |
 | Typography | `Title`, `Text` | primitive |
 | Button | `Button` | primitive |
@@ -155,6 +156,21 @@ await toast.mount();
 toast.show({ message: 'Saved', type: 'success' });
 ```
 
+## JSON Tree
+
+High-performance virtualized JSON viewer (inspired by [jsonTreeViewer](https://github.com/fanfeilong/jsonTreeViewer)). Only visible rows are in the DOM; works with gd5 orange / blue / green themes.
+
+```js
+import { JsonTree } from './src/ui/index.js';
+
+const jt = new JsonTree({ height: 360, defaultExpand: 1, onPath: (p) => console.log(p) });
+await jt.mount(host);
+jt.loadData({ name: 'Ada', tags: ['math', 'code'] });
+jt.expand();   // or jt.collapse()
+```
+
+Shortcuts: click expand · Ctrl/⌘+click recursive · Alt+click mark · Shift+click JSONPath.
+
 ## Workflow DAG
 
 Multi-column stage board with bezier edges. Scroll freely, drag blank area to pan, click a node for a right `Drawer`.
@@ -209,5 +225,5 @@ Or override tokens manually:
 
 - 引擎 = 运行时；**组件库** = `src/ui/`（对标 [antd](https://ant.design/components/overview) + [NameThatUI](https://namethatui.com/) Web 清单）
 - **主题可选：`orange` / `blue` / `green`**（白面板 + 主色切换）；`setTheme()` 或 `ConfigProvider`
-- 基础件返回实 DOM；`Modal` / `Drawer` / `Toast` / `Notification` / `Lightbox` / `CommandPalette` 是 `Component`
+- 基础件返回实 DOM；`Modal` / `Drawer` / `Toast` / `Notification` / `Lightbox` / `CommandPalette` / `WorkflowDAG` / `JsonTree` 是 `Component`
 - 画廊：`examples/ui-gallery.html`
