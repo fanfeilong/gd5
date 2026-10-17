@@ -117,10 +117,12 @@ import {
   CommandPalette,
   WorkflowDAG,
   JsonTree,
+  CodeBlock,
   themes,
   setTheme,
   getTheme,
 } from '../src/ui/index.js';
+import { el } from '../src/ui/util.js';
 
 class GalleryPage extends Component {
   constructor() {
@@ -538,6 +540,29 @@ class GalleryPage extends Component {
           ),
 
           this.section(
+            'Code block',
+            Space(
+              { direction: 'vertical', size: 'sm' },
+              Text({
+                type: 'secondary',
+                text: 'Native line numbers (no highlight.js). Fixes table-copy blanks, multiline tokens, trailing newline count.',
+              }),
+              CodeBlock({
+                language: 'javascript',
+                highlightLines: [4, 5],
+                code:
+                  "/** Add two numbers */\nexport function add(a, b) {\n  // keep precision\n  const sum = a + b;\n  return sum;\n}\n",
+              }),
+              CodeBlock({
+                language: 'json',
+                startFrom: 10,
+                lineNumbers: true,
+                code: '{\n  "ok": true,\n  "n": 42\n}\n',
+              })
+            )
+          ),
+
+          this.section(
             'JSON Tree',
             Space(
               { direction: 'vertical', size: 'sm' },
@@ -545,7 +570,8 @@ class GalleryPage extends Component {
                 type: 'secondary',
                 text: 'Virtualized JSON viewer (jsonTreeViewer-style). Expand / mark / JSONPath; theme-aware type colors.',
               }),
-              div({
+              // Use standalone el() — nested bind div() steals D.root inside ensureShell.
+              el('div', {
                 id: 'jsonTreeHost',
                 className: 'component-host',
                 style: { minHeight: '340px' },
@@ -561,7 +587,7 @@ class GalleryPage extends Component {
                 type: 'secondary',
                 text: 'Multi-column DAG: scroll, drag blank area to pan, click a node for the right drawer.',
               }),
-              div({
+              el('div', {
                 id: 'workflowHost',
                 className: 'component-host',
                 style: { minHeight: '360px' },
@@ -1016,7 +1042,11 @@ class GalleryPage extends Component {
       }
     );
 
-    const jtHost = this.ids().jsonTreeHost;
+    const jtHost =
+      this.ids().jsonTreeHost ||
+      (typeof document !== 'undefined'
+        ? document.getElementById('jsonTreeHost')
+        : null);
     if (jtHost && !this._jsonTreeMounted) {
       this._jsonTreeMounted = true;
       void this.jsonTree.mount(jtHost).then(() => {
@@ -1043,7 +1073,11 @@ class GalleryPage extends Component {
       });
     }
 
-    const wfHost = this.ids().workflowHost;
+    const wfHost =
+      this.ids().workflowHost ||
+      (typeof document !== 'undefined'
+        ? document.getElementById('workflowHost')
+        : null);
     if (wfHost && !this._workflowMounted) {
       this._workflowMounted = true;
       void this.workflow.mount(wfHost).then(() => {

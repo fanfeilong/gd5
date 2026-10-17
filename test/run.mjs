@@ -86,6 +86,8 @@ section('layout: product vs engine');
     'src/ui/css/workflow.css',
     'src/ui/JsonTree.js',
     'src/ui/css/json-tree.css',
+    'src/ui/code.js',
+    'src/ui/css/code-block.css',
     'src/ui/input-number.js',
     'src/ui/rate.js',
     'src/ui/cascader.js',
@@ -808,6 +810,29 @@ section('ui kit');
     jt.collapse();
     assert(jt.state.data.expanded.size === 0, 'JsonTree.collapse clears expansion');
   }
+  assert(typeof ui.CodeBlock === 'function', 'CodeBlock exported');
+  {
+    // --- experiments that document / lock fixes vs highlightjs-line-numbers.js ---
+    // Bug 1: trailing newline should keep an empty display line (hljs-ln pops it).
+    const withTrail = ui.splitCodeLines('a\nb\n');
+    assert(withTrail.length === 3 && withTrail[2] === '', 'trailing newline keeps empty line');
+    const noTrail = ui.splitCodeLines('a\nb');
+    assert(noTrail.length === 2, 'no trailing newline → exact line count');
+    assert(ui.splitCodeLines('').length === 1, 'empty source is one empty line');
+    assert(ui.splitCodeLines('a\r\nb').length === 2, 'CRLF splits to two lines');
+
+    // Bug 2: multiline tokens must not be split via HTML rewrite — token→line map.
+    const multi = '/*\n line2\n*/\nconst x = 1;';
+    const toks = ui.tokenizeCode(multi, 'javascript');
+    assert(toks.some((t) => t.type === 'comment' && t.text.includes('\n')), 'comment token may span newlines');
+    const mapped = ui.tokensToLineNodes(toks);
+    assert(mapped.length === ui.splitCodeLines(multi).length, 'token map line count matches source');
+    assert(mapped[0].some((p) => p.type === 'comment'), 'first line keeps comment token type');
+    assert(mapped[1].some((p) => p.type === 'comment'), 'continuation line keeps comment token type');
+
+    const hi = ui.codeToHighlightedLines(multi, 'javascript');
+    assert(hi.length === 4, 'highlighted lines honor trailing structure');
+  }
 
   {
     const { treePathKeys, nextTreeExpandedKeys } = ui;
@@ -916,6 +941,34 @@ section('ui kit');
   const card = Card({ title: 'Hi' }, Button({ text: 'Go' }));
   assert(card.e.className.includes('gd-card'), 'Card root class');
   assert(typeof cx('a', false, 'b') === 'string' && cx('a', false, 'b') === 'a b', 'cx helper');
+
+  // CodeBlock DOM (needs setAttribute mock above)
+  {
+    const find = (node, pred, out = []) => {
+      if (!node) return out;
+      if (pred(node)) out.push(node);
+      for (const c of node.children || []) find(c, pred, out);
+      return out;
+    };
+    const one = ui.CodeBlock({ code: 'const a = 1;', language: 'javascript', lineNumbers: true });
+    const lines = find(one.e, (n) => String(n.className || '').includes('gd-code__line'));
+    assert(lines.length === 1, 'single-line still numbered');
+    assert(
+      find(one.e, (n) => String(n.className || '').includes('gd-code__n')).length === 1,
+      'single-line renders gutter'
+    );
+    const block = ui.CodeBlock({
+      code: 'one\ntwo\nthree\n',
+      language: 'plaintext',
+      startFrom: 10,
+      highlightLines: [11],
+      showCopy: false,
+    });
+    assert(block.e['data-start-from'] === '10' || block.e.getAttribute?.('data-start-from') === '10', 'startFrom stamped on root');
+    const hl = find(block.e, (n) => String(n.className || '').includes('gd-code__line--hl'));
+    assert(hl.length === 1, 'highlightLines marks target');
+    assert(find(block.e, (n) => n.tagName === 'TABLE').length === 0, 'CodeBlock does not use table layout');
+  }
 
   listeners.length = 0;
   let switched = null;

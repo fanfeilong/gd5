@@ -101,6 +101,7 @@ Primitives return **real-DOM `Element`s**. Overlay widgets are **`Component`s** 
 | Tree / Outline / Disclosure | `Tree` (`accordion` 手风琴单路径), `OutlineView`, `DisclosureTriangle` | primitive |
 | Workflow DAG (multi-column) | `WorkflowDAG`, `WorkflowBoard` | **Component** / primitive |
 | JSON Tree (virtualized) | `JsonTree`, `createJsonTree` | **Component** |
+| Code block (line numbers) | `CodeBlock`, `Code` | primitive |
 | Truncation | `Truncate` | primitive |
 | Typography | `Title`, `Text` | primitive |
 | Button | `Button` | primitive |
@@ -154,6 +155,21 @@ drawer.open({ title: 'Menu', placement: 'left', content: '…' });
 const toast = new Toast({});
 await toast.mount();
 toast.show({ message: 'Saved', type: 'success' });
+```
+
+## Code block
+
+Native line-numbered code viewer (principle from [highlightjs-line-numbers.js](https://github.com/fanfeilong/highlightjs-line-numbers.js), **no dependency**). Fixes table-copy blank lines, multiline-token splitting, and trailing-newline line-count drift.
+
+```js
+import { CodeBlock } from './src/ui/index.js';
+
+CodeBlock({
+  language: 'javascript',
+  startFrom: 1,
+  highlightLines: [3, 4],
+  code: `function add(a, b) {\n  return a + b;\n}\n`,
+})
 ```
 
 ## JSON Tree
