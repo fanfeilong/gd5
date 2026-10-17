@@ -155,6 +155,25 @@ await toast.mount();
 toast.show({ message: 'Saved', type: 'success' });
 ```
 
+## Workflow DAG
+
+Multi-column stage board with bezier edges. Scroll freely, drag blank area to pan, click a node for a right `Drawer`.
+
+```js
+import { WorkflowDAG } from './src/ui/index.js';
+
+const wf = new WorkflowDAG({});
+await wf.mount(document.getElementById('host'));
+wf.setGraph({
+  columns: [
+    { key: 'ingest', title: 'Ingest', nodes: [{ key: 'a', title: 'Source', status: 'success' }] },
+    { key: 'deliver', title: 'Deliver', nodes: [{ key: 'b', title: 'Load', status: 'pending' }] },
+  ],
+  edges: [{ from: 'a', to: 'b' }],
+});
+// optional: wf.setRenderDetail((node) => `…`)
+```
+
 ## Theming
 
 Built-in accents (all keep **white panels**):
