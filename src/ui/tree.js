@@ -137,25 +137,25 @@ export function Tree(props = {}) {
         })
       : el('span', { className: 'gd-tree__twist gd-tree__twist--leaf' });
 
-    const label = el('button', {
-      type: 'button',
+    const selectNode = () => {
+      selectedKey = node.key;
+      onSelect?.(node.key, node);
+      if (!accordion) {
+        paint();
+        return;
+      }
+      if (hasKids) {
+        applyExpand(node.key);
+      } else {
+        expanded = new Set(treePathKeys(treeData, node.key).slice(0, -1));
+        onExpand?.([...expanded]);
+        paint();
+      }
+    };
+
+    const label = el('span', {
       className: 'gd-tree__label',
       text: node.title,
-      onClick: () => {
-        selectedKey = node.key;
-        onSelect?.(node.key, node);
-        if (!accordion) {
-          paint();
-          return;
-        }
-        if (hasKids) {
-          applyExpand(node.key);
-        } else {
-          expanded = new Set(treePathKeys(treeData, node.key).slice(0, -1));
-          onExpand?.([...expanded]);
-          paint();
-        }
-      },
     });
 
     const row = el(
@@ -165,6 +165,7 @@ export function Tree(props = {}) {
           'gd-tree__row',
           selectedKey === node.key && 'gd-tree__row--selected'
         ),
+        onClick: selectNode,
       },
       twist,
       label
