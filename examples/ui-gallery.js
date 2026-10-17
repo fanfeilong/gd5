@@ -143,8 +143,8 @@ class GalleryPage extends Component {
       overflowOpen: false,
       popoverOpen: false,
       search: '',
-      treeExpanded: ['root'],
-      treeSelected: 'child-1',
+      treeExpanded: ['root', 'ui'],
+      treeSelected: 'ui-button',
       email: '',
       password: '',
       pwVisible: false,
@@ -543,13 +543,28 @@ class GalleryPage extends Component {
                 ],
               }),
               Tree({
+                accordion: true,
                 treeData: [
                   {
                     key: 'root',
                     title: 'src',
                     children: [
-                      { key: 'child-1', title: 'ui/' },
-                      { key: 'child-2', title: 'engine/' },
+                      {
+                        key: 'ui',
+                        title: 'ui/',
+                        children: [
+                          { key: 'ui-button', title: 'button.js' },
+                          { key: 'ui-tree', title: 'tree.js' },
+                        ],
+                      },
+                      {
+                        key: 'engine',
+                        title: 'engine/',
+                        children: [
+                          { key: 'engine-component', title: 'component.js' },
+                          { key: 'engine-log', title: 'log.js' },
+                        ],
+                      },
                     ],
                   },
                 ],

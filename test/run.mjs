@@ -776,6 +776,46 @@ section('ui kit');
   assert(typeof Table === 'function' && typeof Tree === 'function', 'Table/Tree exported');
   assert(typeof ProgressBar === 'function', 'ProgressBar exported');
 
+  {
+    const { treePathKeys, nextTreeExpandedKeys } = ui;
+    assert(typeof treePathKeys === 'function' && typeof nextTreeExpandedKeys === 'function', 'tree accordion helpers exported');
+    const sample = [
+      {
+        key: 'root',
+        children: [
+          { key: 'ui', children: [{ key: 'btn' }, { key: 'tree' }] },
+          { key: 'engine', children: [{ key: 'log' }] },
+        ],
+      },
+    ];
+    assert(treePathKeys(sample, 'tree').join(',') === 'root,ui,tree', 'treePathKeys finds root→node path');
+    assert(
+      nextTreeExpandedKeys({
+        treeData: sample,
+        expandedKeys: ['root', 'ui'],
+        key: 'engine',
+        accordion: true,
+      }).join(',') === 'root,engine',
+      'accordion open keeps only root→node path'
+    );
+    assert(
+      nextTreeExpandedKeys({
+        treeData: sample,
+        expandedKeys: ['root', 'engine'],
+        key: 'engine',
+        accordion: true,
+      }).join(',') === 'root',
+      'accordion close keeps ancestors only'
+    );
+    const multi = nextTreeExpandedKeys({
+      treeData: sample,
+      expandedKeys: ['root'],
+      key: 'ui',
+      accordion: false,
+    });
+    assert(multi.includes('root') && multi.includes('ui'), 'non-accordion expands without clearing');
+  }
+
   const namedExports = [
     'Radio', 'Chip', 'Pill', 'Banner', 'Callout', 'Skeleton', 'Avatar', 'AvatarGroup',
     'StatusDot', 'Collapse', 'ToggleGroup', 'Steps', 'Pagination', 'Navbar', 'SiteHeader',
