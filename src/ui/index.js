@@ -133,3 +133,13 @@ export {
   jsonChildPath,
   JSON_TREE_ROW_H,
 } from './JsonTree.js';
+export {
+  CodeBlock,
+  Code,
+  splitCodeLines,
+  countCodeLines,
+  tokenizeCode,
+  tokensToLineNodes,
+  codeToHighlightedLines,
+  copyTextFromCodeSelection,
+} from './code.js';
