@@ -99,6 +99,7 @@ Primitives return **real-DOM `Element`s**. Overlay widgets are **`Component`s** 
 | Toast / Snackbar | `Toast` | **Component** |
 | Toolbar | `Toolbar` | primitive |
 | Tree / Outline / Disclosure | `Tree` (`accordion` 手风琴单路径), `OutlineView`, `DisclosureTriangle` | primitive |
+| Workflow DAG (multi-column) | `WorkflowDAG`, `WorkflowBoard` | **Component** / primitive |
 | Truncation | `Truncate` | primitive |
 | Typography | `Title`, `Text` | primitive |
 | Button | `Button` | primitive |

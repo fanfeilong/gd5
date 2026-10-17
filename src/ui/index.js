@@ -124,3 +124,4 @@ export { Toast } from './Toast.js';
 export { Notification, messageApi } from './Notification.js';
 export { Lightbox } from './Lightbox.js';
 export { CommandPalette } from './CommandPalette.js';
+export { WorkflowDAG, WorkflowBoard } from './WorkflowDAG.js';
