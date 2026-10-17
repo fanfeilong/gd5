@@ -158,9 +158,9 @@ toast.show({ message: 'Saved', type: 'success' });
 
 Built-in accents (all keep **white panels**):
 
-| Name | Primary | Page wash | API |
-|------|---------|-----------|-----|
-| `orange` (default) | `#e86a17` | `#f7f4f0` | `setTheme('orange')` |
+| Name | Primary | Page / panel bg | API |
+|------|---------|-----------------|-----|
+| `orange` (default) | `#e86a17` | `#ffffff` | `setTheme('orange')` |
 | `blue` | `#2f6fed` | `#f3f6fb` | `setTheme('blue')` |
 | `green` | `#2f8f5b` | `#f3f8f4` | `setTheme('green')` |
 
@@ -179,8 +179,9 @@ Or override tokens manually:
 ```css
 :root {
   --gd-primary: #e86a17;
-  --gd-bg: #f7f4f0;
+  --gd-bg: #ffffff;
   --gd-bg-elevated: #ffffff;
+  --gd-mask: rgba(0, 0, 0, 0.45);
 }
 ```
 
