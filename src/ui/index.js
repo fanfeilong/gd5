@@ -147,3 +147,12 @@ export {
   codeToHighlightedLines,
   copyTextFromCodeSelection,
 } from './code.js';
+export {
+  MarkdownEditor,
+  createMarkdownEditor,
+  renderMarkdown,
+  escapeHtml,
+  wrapSelection,
+  insertAtCursor,
+  prefixLines,
+} from './markdown.js';

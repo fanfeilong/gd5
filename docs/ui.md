@@ -103,6 +103,7 @@ Primitives return **real-DOM `Element`s**. Overlay widgets are **`Component`s** 
 | JSON Tree (virtualized) | `JsonTree`, `createJsonTree` | **Component** |
 | Code block (line numbers) | `CodeBlock`, `Code` | primitive |
 | Diff block (unified) | `DiffBlock`, `Diff`, `parseDiffLines` | primitive |
+| Markdown editor | `MarkdownEditor`, `createMarkdownEditor`, `renderMarkdown` | **Component** |
 | Truncation | `Truncate` | primitive |
 | Typography | `Title`, `Text` | primitive |
 | Button | `Button` | primitive |
@@ -186,6 +187,24 @@ DiffBlock({
 })
 
 parseDiffLines(diff) // → [{ type, text, oldLine, newLine, marker, raw }, …]
+```
+
+## Markdown editor
+
+Markdown-first editor with a basic top toolbar and live preview. Modes: **编辑** / **分栏** (default) / **预览**. Toolbar wraps the selection (bold, italic, heading, quote, code, link, lists). Preview uses a small built-in `renderMarkdown` (no marked/remark dependency).
+
+```js
+import { MarkdownEditor, renderMarkdown } from './src/ui/index.js';
+
+const ed = new MarkdownEditor({
+  mode: 'split',
+  height: 280,
+  value: '# Hello\n\nWrite **markdown**.',
+  onChange: (v) => console.log(v),
+});
+await ed.mount(host);
+ed.setMode('preview');
+ed.getValue();
 ```
 
 ## JSON Tree
