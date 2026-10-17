@@ -88,6 +88,8 @@ section('layout: product vs engine');
     'src/ui/css/json-tree.css',
     'src/ui/code.js',
     'src/ui/css/code-block.css',
+    'src/ui/markdown.js',
+    'src/ui/css/markdown-editor.css',
     'src/ui/input-number.js',
     'src/ui/rate.js',
     'src/ui/cascader.js',
@@ -814,6 +816,43 @@ section('ui kit');
   assert(typeof ui.DiffBlock === 'function', 'DiffBlock exported');
   assert(typeof ui.parseDiffLines === 'function', 'parseDiffLines exported');
   assert(ui.parseUnifiedDiff === ui.parseDiffLines, 'parseUnifiedDiff aliases parseDiffLines');
+  assert(typeof ui.MarkdownEditor === 'function', 'MarkdownEditor exported');
+  assert(typeof ui.renderMarkdown === 'function', 'renderMarkdown exported');
+  assert(typeof ui.createMarkdownEditor === 'function', 'createMarkdownEditor exported');
+  {
+    const html = ui.renderMarkdown(
+      '# Title\n\nHello **world** and *it*.\n\n- a\n- b\n\n```js\nconst x = 1;\n```\n\n> quote\n\n[link](https://example.com)\n'
+    );
+    assert(html.includes('<h1>') && html.includes('Title'), 'renderMarkdown heading');
+    assert(html.includes('<strong>world</strong>'), 'renderMarkdown bold');
+    assert(html.includes('<em>it</em>'), 'renderMarkdown italic');
+    assert(html.includes('<ul>') && html.includes('<li>'), 'renderMarkdown list');
+    assert(html.includes('<pre') && html.includes('const x = 1;'), 'renderMarkdown fence');
+    assert(html.includes('<blockquote>'), 'renderMarkdown quote');
+    assert(html.includes('href="https://example.com"'), 'renderMarkdown link');
+    assert(ui.escapeHtml('<script>') === '&lt;script&gt;', 'escapeHtml encodes tags');
+    assert(
+      !ui.renderMarkdown('`<script>alert(1)</script>`').includes('<script>'),
+      'inline code escapes raw HTML'
+    );
+    const ta = {
+      value: 'hello',
+      selectionStart: 0,
+      selectionEnd: 5,
+      focus() {},
+      setSelectionRange(a, b) {
+        this.selectionStart = a;
+        this.selectionEnd = b;
+      },
+    };
+    assert(ui.wrapSelection(ta, '**', '**') === '**hello**', 'wrapSelection wraps selection');
+    const ed = new ui.MarkdownEditor({ value: '# hi', mode: 'edit' });
+    assert(ed.getValue() === '# hi', 'MarkdownEditor.getValue');
+    ed.setValue('## next', { refresh: false });
+    assert(ed.getValue() === '## next', 'MarkdownEditor.setValue');
+    ed.setMode('preview');
+    assert(ed.state.data.mode === 'preview', 'MarkdownEditor.setMode');
+  }
   {
     // --- experiments that document / lock fixes vs highlightjs-line-numbers.js ---
     // Bug 1: trailing newline should keep an empty display line (hljs-ln pops it).
@@ -915,6 +954,7 @@ section('ui kit');
   assert(docs.includes('namethatui.com') || docs.includes('NameThatUI'), 'docs reference NameThatUI');
   assert(docs.includes('Ant Design') || docs.includes('ant.design'), 'docs reference Ant Design');
   assert(docs.includes('DiffBlock') && docs.includes('parseDiffLines'), 'docs cover DiffBlock');
+  assert(docs.includes('MarkdownEditor') && docs.includes('renderMarkdown'), 'docs cover MarkdownEditor');
 
   const listeners = [];
   globalThis.document = {

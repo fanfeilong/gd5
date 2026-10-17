@@ -119,6 +119,7 @@ import {
   JsonTree,
   CodeBlock,
   DiffBlock,
+  MarkdownEditor,
   themes,
   setTheme,
   getTheme,
@@ -184,6 +185,14 @@ class GalleryPage extends Component {
       onPath: (path) => this.toast.show({ message: path, type: 'info' }),
     });
     this._jsonTreeMounted = false;
+    this.markdownEditor = new MarkdownEditor({
+      height: 280,
+      mode: 'split',
+      value:
+        '# Markdown editor\n\nWrite **bold**, *italic*, and `code`.\n\n- Toolbar wraps selection\n- Switch 编辑 / 分栏 / 预览\n\n```js\nconst ok = true;\n```\n\n> Preview updates as you type.\n',
+      onChange: () => {},
+    });
+    this._markdownMounted = false;
   }
 
   async componentDidMount() {
@@ -536,6 +545,22 @@ class GalleryPage extends Component {
                   { key: 'search', label: 'Search', icon: '⌕' },
                   { key: 'me', label: 'Me', icon: '☺' },
                 ],
+              })
+            )
+          ),
+
+          this.section(
+            'Markdown editor',
+            Space(
+              { direction: 'vertical', size: 'sm' },
+              Text({
+                type: 'secondary',
+                text: 'Default Markdown editing with a basic top toolbar and live preview (编辑 / 分栏 / 预览).',
+              }),
+              el('div', {
+                id: 'markdownEditorHost',
+                className: 'component-host',
+                style: { minHeight: '300px' },
               })
             )
           ),
@@ -1051,6 +1076,16 @@ class GalleryPage extends Component {
         );
       }
     );
+
+    const mdHost =
+      this.ids().markdownEditorHost ||
+      (typeof document !== 'undefined'
+        ? document.getElementById('markdownEditorHost')
+        : null);
+    if (mdHost && !this._markdownMounted) {
+      this._markdownMounted = true;
+      void this.markdownEditor.mount(mdHost);
+    }
 
     const jtHost =
       this.ids().jsonTreeHost ||
