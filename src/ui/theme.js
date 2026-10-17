@@ -13,7 +13,7 @@ export const themes = {
   orange: {
     label: 'Orange',
     primary: '#e86a17',
-    bg: '#f7f4f0',
+    bg: '#ffffff',
   },
   blue: {
     label: 'Blue',

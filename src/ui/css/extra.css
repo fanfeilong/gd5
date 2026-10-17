@@ -477,7 +477,7 @@
 .gd-scrim {
   position: fixed;
   inset: 0;
-  background: rgba(40, 28, 18, 0.4);
+  background: var(--gd-mask);
   opacity: 0;
   pointer-events: none;
   transition: opacity 160ms var(--gd-ease);
@@ -576,7 +576,7 @@
 /* Drawer */
 .gd-drawer-root { position: fixed; inset: 0; z-index: 1000; display: none; }
 .gd-drawer-root.is-open { display: block; }
-.gd-drawer-mask { position: absolute; inset: 0; background: rgba(40, 28, 18, 0.4); }
+.gd-drawer-mask { position: absolute; inset: 0; background: var(--gd-mask); }
 .gd-drawer {
   position: absolute;
   background: var(--gd-bg-elevated);
@@ -640,7 +640,7 @@
 /* Lightbox */
 .gd-lightbox-root { position: fixed; inset: 0; z-index: 1050; display: none; }
 .gd-lightbox-root.is-open { display: block; }
-.gd-lightbox-mask { position: absolute; inset: 0; background: rgba(20, 12, 8, 0.75); }
+.gd-lightbox-mask { position: absolute; inset: 0; background: var(--gd-mask-heavy); }
 .gd-lightbox__stage {
   position: absolute;
   inset: 0;
@@ -1006,7 +1006,7 @@
 /* Command palette */
 .gd-cmd-root { position: fixed; inset: 0; z-index: 1150; display: none; }
 .gd-cmd-root.is-open { display: block; }
-.gd-cmd-mask { position: absolute; inset: 0; background: rgba(40, 28, 18, 0.45); }
+.gd-cmd-mask { position: absolute; inset: 0; background: var(--gd-mask); }
 .gd-cmd {
   position: relative;
   width: min(560px, calc(100vw - 32px));
