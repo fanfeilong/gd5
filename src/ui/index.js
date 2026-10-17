@@ -136,6 +136,10 @@ export {
 export {
   CodeBlock,
   Code,
+  DiffBlock,
+  Diff,
+  parseDiffLines,
+  parseUnifiedDiff,
   splitCodeLines,
   countCodeLines,
   tokenizeCode,

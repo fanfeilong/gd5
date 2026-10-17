@@ -233,6 +233,13 @@ function renderLineContent(parts) {
  * @param {string} [props.className]
  */
 export function CodeBlock(props = {}) {
+  if (props.mode === 'diff' || props.diff != null) {
+    return DiffBlock({
+      ...props,
+      diff: props.diff ?? props.code,
+    });
+  }
+
   const {
     code = '',
     language = 'javascript',
@@ -280,6 +287,8 @@ export function CodeBlock(props = {}) {
     {
       ...omit(props, [
         'code',
+        'diff',
+        'mode',
         'language',
         'lineNumbers',
         'startFrom',
@@ -352,3 +361,255 @@ export function CodeBlock(props = {}) {
 
 /** Alias */
 export const Code = CodeBlock;
+
+/**
+ * @typedef {'hunk'|'meta'|'add'|'del'|'ctx'} DiffLineType
+ * @typedef {{
+ *   type: DiffLineType,
+ *   text: string,
+ *   oldLine: number|null,
+ *   newLine: number|null,
+ *   marker: string,
+ *   raw: string,
+ * }} DiffLine
+ */
+
+const HUNK_RE = /^@@\s+-(\d+)(?:,\d+)?\s+\+(\d+)(?:,\d+)?\s@@/;
+
+/**
+ * Parse unified diff (or hunk-less +/-/space lines) into typed rows.
+ * Dual line counters follow GitHub-style unified hunks.
+ *
+ * @param {string} text
+ * @returns {DiffLine[]}
+ */
+export function parseDiffLines(text) {
+  const source = String(text ?? '');
+  if (!source.length) return [];
+
+  const rawLines = source.split(BREAK);
+  // Trailing newline from split → empty segment; drop for diff rows.
+  if (rawLines.length && rawLines[rawLines.length - 1] === '') rawLines.pop();
+
+  /** @type {DiffLine[]} */
+  const out = [];
+  let oldLine = 0;
+  let newLine = 0;
+
+  for (const raw of rawLines) {
+    const hunk = HUNK_RE.exec(raw);
+    if (hunk) {
+      oldLine = Number(hunk[1]) || 0;
+      newLine = Number(hunk[2]) || 0;
+      out.push({
+        type: 'hunk',
+        text: raw,
+        oldLine: null,
+        newLine: null,
+        marker: '',
+        raw,
+      });
+      continue;
+    }
+
+    if (
+      raw.startsWith('diff ') ||
+      raw.startsWith('index ') ||
+      raw.startsWith('---') ||
+      raw.startsWith('+++') ||
+      raw.startsWith('Binary ') ||
+      raw.startsWith('\\')
+    ) {
+      out.push({
+        type: 'meta',
+        text: raw,
+        oldLine: null,
+        newLine: null,
+        marker: '',
+        raw,
+      });
+      continue;
+    }
+
+    const ch = raw.charAt(0);
+    if (ch === '+') {
+      const n = newLine || 1;
+      if (newLine) newLine += 1;
+      else newLine = 2;
+      out.push({
+        type: 'add',
+        text: raw.slice(1),
+        oldLine: null,
+        newLine: n,
+        marker: '+',
+        raw,
+      });
+      continue;
+    }
+    if (ch === '-') {
+      const n = oldLine || 1;
+      if (oldLine) oldLine += 1;
+      else oldLine = 2;
+      out.push({
+        type: 'del',
+        text: raw.slice(1),
+        oldLine: n,
+        newLine: null,
+        marker: '-',
+        raw,
+      });
+      continue;
+    }
+
+    // Context: leading space (unified) or bare text (simplified).
+    const body = ch === ' ' ? raw.slice(1) : raw;
+    const o = oldLine || 1;
+    const n = newLine || 1;
+    if (oldLine) oldLine += 1;
+    else oldLine = 2;
+    if (newLine) newLine += 1;
+    else newLine = 2;
+    out.push({
+      type: 'ctx',
+      text: body,
+      oldLine: o,
+      newLine: n,
+      marker: ' ',
+      raw,
+    });
+  }
+
+  return out;
+}
+
+/** Alias */
+export const parseUnifiedDiff = parseDiffLines;
+
+function gutterSpan(kind, n) {
+  const attrs = { 'aria-hidden': 'true' };
+  if (n != null) attrs['data-line-number'] = String(n);
+  return el('span', {
+    className: cx('gd-code__n', `gd-code__n--${kind}`, n == null && 'gd-code__n--empty'),
+    attrs,
+  });
+}
+
+/**
+ * DiffBlock — unified diff viewer (GitHub-style dual gutters).
+ * Reuses CodeBlock tokens / chrome; no highlight.js.
+ *
+ * @param {object} [props]
+ * @param {string} [props.diff] unified / simplified diff text
+ * @param {string} [props.code] alias of diff
+ * @param {DiffLine[]} [props.lines] pre-parsed rows (skips parse)
+ * @param {string} [props.language] highlighter for content body
+ * @param {boolean} [props.showCopy]
+ * @param {string} [props.className]
+ */
+export function DiffBlock(props = {}) {
+  const {
+    diff,
+    code,
+    lines: preLines,
+    language = 'javascript',
+    showCopy = true,
+    className,
+  } = props;
+
+  const source = String(diff ?? code ?? '');
+  const rows = Array.isArray(preLines) ? preLines : parseDiffLines(source);
+
+  const lineNodes = rows.map((row) => {
+    const isCode = row.type === 'add' || row.type === 'del' || row.type === 'ctx';
+    const parts = isCode
+      ? codeToHighlightedLines(row.text, language)[0] || []
+      : row.text
+        ? [{ type: 'text', text: row.text }]
+        : [];
+
+    return el(
+      'div',
+      {
+        className: cx('gd-code__line', `gd-code__line--${row.type}`),
+        attrs: {
+          'data-diff-type': row.type,
+          ...(row.oldLine != null ? { 'data-old-line': String(row.oldLine) } : {}),
+          ...(row.newLine != null ? { 'data-new-line': String(row.newLine) } : {}),
+        },
+      },
+      gutterSpan('old', row.oldLine),
+      gutterSpan('new', row.newLine),
+      el('span', {
+        className: cx('gd-code__marker', !row.marker && 'gd-code__marker--empty'),
+        attrs: {
+          'aria-hidden': 'true',
+          ...(row.marker ? { 'data-marker': row.marker } : {}),
+        },
+      }),
+      el(
+        'code',
+        { className: 'gd-code__c' },
+        ...[].concat(renderLineContent(parts))
+      )
+    );
+  });
+
+  const root = el(
+    'div',
+    {
+      ...omit(props, ['diff', 'code', 'lines', 'language', 'showCopy', 'className', 'mode']),
+      className: cx(
+        'gd-code',
+        'gd-code--diff',
+        'gd-code--numbered',
+        `gd-code--${String(language || 'plaintext').toLowerCase()}`,
+        className
+      ),
+      attrs: {
+        'data-language': String(language || 'plaintext'),
+        'data-mode': 'diff',
+      },
+    },
+    showCopy
+      ? el('button', {
+          type: 'button',
+          className: 'gd-code__copy gd-btn gd-btn--default gd-btn--sm',
+          text: 'Copy',
+          onClick: async (e) => {
+            e.stopPropagation();
+            const btn = e.currentTarget;
+            const payload =
+              source ||
+              rows.map((r) => r.raw).join('\n');
+            try {
+              if (navigator.clipboard?.writeText) {
+                await navigator.clipboard.writeText(payload);
+              } else {
+                const ta = document.createElement('textarea');
+                ta.value = payload;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+              }
+              btn.textContent = 'Copied';
+              setTimeout(() => {
+                btn.textContent = 'Copy';
+              }, 1200);
+            } catch {
+              btn.textContent = 'Failed';
+              setTimeout(() => {
+                btn.textContent = 'Copy';
+              }, 1200);
+            }
+          },
+        })
+      : null,
+    el('pre', { className: 'gd-code__pre' }, ...lineNodes)
+  );
+
+  return root;
+}
+
+/** Alias */
+export const Diff = DiffBlock;

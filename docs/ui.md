@@ -102,6 +102,7 @@ Primitives return **real-DOM `Element`s**. Overlay widgets are **`Component`s** 
 | Workflow DAG (multi-column) | `WorkflowDAG`, `WorkflowBoard` | **Component** / primitive |
 | JSON Tree (virtualized) | `JsonTree`, `createJsonTree` | **Component** |
 | Code block (line numbers) | `CodeBlock`, `Code` | primitive |
+| Diff block (unified) | `DiffBlock`, `Diff`, `parseDiffLines` | primitive |
 | Truncation | `Truncate` | primitive |
 | Typography | `Title`, `Text` | primitive |
 | Button | `Button` | primitive |
@@ -170,6 +171,21 @@ CodeBlock({
   highlightLines: [3, 4],
   code: `function add(a, b) {\n  return a + b;\n}\n`,
 })
+```
+
+### Diff block
+
+Unified diff viewer with dual gutters (old | new) and `+`/`-` markers. Accepts a full unified patch or simplified `+/-/space` lines. `CodeBlock({ mode: 'diff', diff })` delegates to the same renderer.
+
+```js
+import { DiffBlock, parseDiffLines } from './src/ui/index.js';
+
+DiffBlock({
+  language: 'javascript',
+  diff: `@@ -1,3 +1,4 @@\n function add(a, b) {\n-  return a + b;\n+  // keep precision\n+  return a + b;\n }\n`,
+})
+
+parseDiffLines(diff) // → [{ type, text, oldLine, newLine, marker, raw }, …]
 ```
 
 ## JSON Tree

@@ -811,6 +811,9 @@ section('ui kit');
     assert(jt.state.data.expanded.size === 0, 'JsonTree.collapse clears expansion');
   }
   assert(typeof ui.CodeBlock === 'function', 'CodeBlock exported');
+  assert(typeof ui.DiffBlock === 'function', 'DiffBlock exported');
+  assert(typeof ui.parseDiffLines === 'function', 'parseDiffLines exported');
+  assert(ui.parseUnifiedDiff === ui.parseDiffLines, 'parseUnifiedDiff aliases parseDiffLines');
   {
     // --- experiments that document / lock fixes vs highlightjs-line-numbers.js ---
     // Bug 1: trailing newline should keep an empty display line (hljs-ln pops it).
@@ -832,6 +835,22 @@ section('ui kit');
 
     const hi = ui.codeToHighlightedLines(multi, 'javascript');
     assert(hi.length === 4, 'highlighted lines honor trailing structure');
+  }
+  {
+    const patch =
+      '--- a/x.js\n+++ b/x.js\n@@ -1,3 +1,4 @@\n keep\n-old\n+new\n+extra\n keep2\n';
+    const rows = ui.parseDiffLines(patch);
+    assert(rows[0].type === 'meta' && rows[1].type === 'meta', 'diff headers are meta');
+    assert(rows[2].type === 'hunk', 'hunk header parsed');
+    const types = rows.map((r) => r.type).join(',');
+    assert(types.includes('del') && types.includes('add') && types.includes('ctx'), 'add/del/ctx present');
+    const del = rows.find((r) => r.type === 'del');
+    const add = rows.find((r) => r.type === 'add');
+    assert(del && del.text === 'old' && del.oldLine === 2 && del.newLine == null, 'del tracks old line');
+    assert(add && add.text === 'new' && add.newLine === 2 && add.oldLine == null, 'add tracks new line');
+    const simple = ui.parseDiffLines('-a\n+b\n c\n');
+    assert(simple.length === 3, 'hunk-less +/-/space parses');
+    assert(simple[0].type === 'del' && simple[1].type === 'add' && simple[2].type === 'ctx', 'hunk-less types');
   }
 
   {
@@ -895,6 +914,7 @@ section('ui kit');
   const docs = readFileSync(join(root, 'docs/ui.md'), 'utf8');
   assert(docs.includes('namethatui.com') || docs.includes('NameThatUI'), 'docs reference NameThatUI');
   assert(docs.includes('Ant Design') || docs.includes('ant.design'), 'docs reference Ant Design');
+  assert(docs.includes('DiffBlock') && docs.includes('parseDiffLines'), 'docs cover DiffBlock');
 
   const listeners = [];
   globalThis.document = {
@@ -968,6 +988,31 @@ section('ui kit');
     const hl = find(block.e, (n) => String(n.className || '').includes('gd-code__line--hl'));
     assert(hl.length === 1, 'highlightLines marks target');
     assert(find(block.e, (n) => n.tagName === 'TABLE').length === 0, 'CodeBlock does not use table layout');
+
+    const diff = ui.DiffBlock({
+      language: 'javascript',
+      showCopy: false,
+      diff: '@@ -1,2 +1,2 @@\n-a\n+b\n',
+    });
+    assert(String(diff.e.className || '').includes('gd-code--diff'), 'DiffBlock root has gd-code--diff');
+    assert(
+      find(diff.e, (n) => String(n.className || '').includes('gd-code__line--del')).length === 1,
+      'DiffBlock marks deleted line'
+    );
+    assert(
+      find(diff.e, (n) => String(n.className || '').includes('gd-code__line--add')).length === 1,
+      'DiffBlock marks added line'
+    );
+    assert(
+      find(diff.e, (n) => String(n.className || '').includes('gd-code__n--old')).length >= 1,
+      'DiffBlock dual old gutter'
+    );
+    assert(
+      find(diff.e, (n) => String(n.className || '').includes('gd-code__n--new')).length >= 1,
+      'DiffBlock dual new gutter'
+    );
+    const viaMode = ui.CodeBlock({ mode: 'diff', diff: '+x\n' });
+    assert(String(viaMode.e.className || '').includes('gd-code--diff'), 'CodeBlock mode=diff → DiffBlock');
   }
 
   listeners.length = 0;
