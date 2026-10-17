@@ -116,6 +116,7 @@ import {
   Lightbox,
   CommandPalette,
   WorkflowDAG,
+  JsonTree,
   themes,
   setTheme,
   getTheme,
@@ -174,6 +175,12 @@ class GalleryPage extends Component {
     this.notification = new Notification({});
     this.workflow = new WorkflowDAG({});
     this._workflowMounted = false;
+    this.jsonTree = new JsonTree({
+      height: 320,
+      defaultExpand: 2,
+      onPath: (path) => this.toast.show({ message: path, type: 'info' }),
+    });
+    this._jsonTreeMounted = false;
   }
 
   async componentDidMount() {
@@ -526,6 +533,22 @@ class GalleryPage extends Component {
                   { key: 'search', label: 'Search', icon: '⌕' },
                   { key: 'me', label: 'Me', icon: '☺' },
                 ],
+              })
+            )
+          ),
+
+          this.section(
+            'JSON Tree',
+            Space(
+              { direction: 'vertical', size: 'sm' },
+              Text({
+                type: 'secondary',
+                text: 'Virtualized JSON viewer (jsonTreeViewer-style). Expand / mark / JSONPath; theme-aware type colors.',
+              }),
+              div({
+                id: 'jsonTreeHost',
+                className: 'component-host',
+                style: { minHeight: '340px' },
               })
             )
           ),
@@ -992,6 +1015,33 @@ class GalleryPage extends Component {
         );
       }
     );
+
+    const jtHost = this.ids().jsonTreeHost;
+    if (jtHost && !this._jsonTreeMounted) {
+      this._jsonTreeMounted = true;
+      void this.jsonTree.mount(jtHost).then(() => {
+        this.jsonTree.loadData({
+          product: 'gd5',
+          themes: ['orange', 'blue', 'green'],
+          engine: {
+            runtime: 'real-DOM',
+            bundler: false,
+            apis: ['Component', 'bind', 'LogProvider'],
+          },
+          ui: {
+            kits: 80,
+            overlays: ['Modal', 'Drawer', 'Toast'],
+            flags: { virtualJson: true, workflowDag: true },
+          },
+          metrics: {
+            score: 98.5,
+            samples: [1, 2, 3, 5, 8, 13],
+            ok: true,
+            note: null,
+          },
+        });
+      });
+    }
 
     const wfHost = this.ids().workflowHost;
     if (wfHost && !this._workflowMounted) {

@@ -125,3 +125,11 @@ export { Notification, messageApi } from './Notification.js';
 export { Lightbox } from './Lightbox.js';
 export { CommandPalette } from './CommandPalette.js';
 export { WorkflowDAG, WorkflowBoard } from './WorkflowDAG.js';
+export {
+  JsonTree,
+  createJsonTree,
+  flattenJsonTree,
+  jsonValueType,
+  jsonChildPath,
+  JSON_TREE_ROW_H,
+} from './JsonTree.js';
